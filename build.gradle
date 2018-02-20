@@ -1,0 +1,54 @@
+buildscript {
+
+    ext.springBootVersion           = '1.5.10.RELEASE'
+    ext.log4jVersion                = '2.10.0'
+    ext.junit4Version               = '4.12'
+    ext.kotlinVersion               = '1.2.21'
+    ext.jacksonModuleKotlinVersion  = '2.9.4.1'
+
+    repositories {
+        mavenCentral()
+        maven { url("https://repo.spring.io/milestone") }
+    }
+
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
+    }
+
+}
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'org.springframework.boot'
+
+repositories {
+    mavenCentral()
+    maven { url("https://repo.spring.io/milestone") }
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+compileKotlin.kotlinOptions.jvmTarget = "1.8"
+compileTestKotlin.kotlinOptions.jvmTarget = "1.8"
+
+dependencies {
+
+    // Kotlin
+    compile("com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonModuleKotlinVersion}")
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
+
+    // Spring Boot
+    compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+    testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+
+    // Log4J
+    testRuntime("org.apache.logging.log4j:log4j-core:${log4jVersion}")
+    testRuntime("org.apache.logging.log4j:log4j-jul:${log4jVersion}")
+
+    // JUnit
+    testCompile("junit:junit:${junit4Version}")
+
+}
