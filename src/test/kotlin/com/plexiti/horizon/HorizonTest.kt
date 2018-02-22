@@ -1,5 +1,6 @@
 package com.plexiti.horizon
 
+import com.plexiti.generics.IntegrationTest
 import org.assertj.core.api.Assertions
 import org.junit.Test
 import org.junit.experimental.categories.Category

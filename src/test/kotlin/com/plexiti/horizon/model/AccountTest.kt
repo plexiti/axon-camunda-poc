@@ -1,6 +1,6 @@
 package com.plexiti.horizon.model
 
-import com.plexiti.horizon.UnitTest
+import com.plexiti.generics.UnitTest
 import org.axonframework.test.aggregate.AggregateTestFixture
 import org.junit.Before
 import org.junit.Test

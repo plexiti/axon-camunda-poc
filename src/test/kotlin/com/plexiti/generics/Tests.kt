@@ -1,4 +1,4 @@
-package com.plexiti.horizon
+package com.plexiti.generics
 
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>

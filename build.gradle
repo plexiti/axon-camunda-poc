@@ -67,12 +67,12 @@ dependencies {
 
 test {
     useJUnit {
-        includeCategories 'com.plexiti.horizon.UnitTest'
+        includeCategories 'com.plexiti.generics.UnitTest'
     }
 }
 
 task integration(type: Test) {
     useJUnit {
-        includeCategories 'com.plexiti.horizon.IntegrationTest'
+        includeCategories 'com.plexiti.generics.IntegrationTest'
     }
 }
