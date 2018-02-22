@@ -1,7 +1,7 @@
-package com.plexiti.horizon.model
+package com.plexiti.horizon.domain
 
-import com.plexiti.generics.AggregateIdentifiedBy
-import com.plexiti.generics.Identifier
+import com.plexiti.generics.domain.AggregateIdentifiedBy
+import com.plexiti.generics.domain.Identifier
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.TargetAggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateRoot
@@ -44,7 +44,7 @@ data class CreateAccount(@TargetAggregateIdentifier val accountId: AccountId, va
 data class AccountCreated(val accountId: AccountId, val name: String)
 
 @Service
-class AccountNames() {
+class Accounts() {
 
     private lateinit var accounts: Repository<Account>
 

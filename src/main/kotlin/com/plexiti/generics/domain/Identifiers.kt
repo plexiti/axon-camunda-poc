@@ -1,4 +1,4 @@
-package com.plexiti.generics
+package com.plexiti.generics.domain
 
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import java.io.Serializable

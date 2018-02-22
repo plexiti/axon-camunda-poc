@@ -1,7 +1,7 @@
-package com.plexiti.horizon
+package com.plexiti.horizon.web
 
 import com.plexiti.generics.IntegrationTest
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -16,14 +16,16 @@ import org.springframework.test.context.junit4.SpringRunner
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Category(IntegrationTest::class)
-class HorizonTest {
+class AccountsTest {
 
     @Autowired
     private lateinit var restTemplate: TestRestTemplate
 
     @Test
-    fun testAbout() {
-        Assertions.assertThat(this.restTemplate).isNotNull();
+    fun testAccounts() {
+        val account = restTemplate.getForObject("/accounts", Account::class.java)
+        assertThat(account.id).isEqualTo("1")
+        assertThat(account.name).isEqualTo("testAccount")
     }
 
 }

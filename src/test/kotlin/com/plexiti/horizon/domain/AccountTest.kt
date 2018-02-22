@@ -1,10 +1,6 @@
-package com.plexiti.horizon.model
+package com.plexiti.horizon.domain
 
 import com.plexiti.generics.UnitTest
-import org.assertj.core.api.Assertions
-import org.assertj.core.api.Assertions.assertThat
-import org.axonframework.messaging.unitofwork.CurrentUnitOfWork
-import org.axonframework.messaging.unitofwork.UnitOfWork
 import org.axonframework.test.aggregate.AggregateTestFixture
 import org.junit.Before
 import org.junit.Test
@@ -22,7 +18,7 @@ class AccountTest {
     @Before
     fun setUp() {
         account = AggregateTestFixture(Account::class.java)
-        account.registerAnnotatedCommandHandler(AccountNames(account.repository))
+        account.registerAnnotatedCommandHandler(Accounts(account.repository))
     }
 
     @Test
