@@ -27,7 +27,7 @@ abstract class Identifier<ID: Any>(): Serializable {
     }
 
     override fun toString(): String {
-        return "${this::class.qualifiedName}(id=${id})"
+        return id.toString() // must exactly be actual id in order to work with Axon
     }
 
 }
@@ -39,6 +39,10 @@ abstract class AggregateIdentifiedBy<ID: Any>(): Identifier<ID>() {
 
     protected constructor(id: ID): this() {
         this.id = id
+    }
+
+    override fun toString(): String {
+        return "${this::class.qualifiedName}(id=${id})"
     }
 
 }
