@@ -4,9 +4,11 @@ import com.plexiti.generics.domain.AggregateIdentifiedBy
 import com.plexiti.generics.domain.Identifier
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.TargetAggregateIdentifier
+import org.axonframework.commandhandling.model.Aggregate
 import org.axonframework.commandhandling.model.AggregateRoot
 
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
+import org.axonframework.commandhandling.model.AggregateNotFoundException
 import org.axonframework.commandhandling.model.Repository
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.springframework.stereotype.Service
@@ -18,11 +20,16 @@ import org.springframework.stereotype.Service
 @AggregateRoot
 class Account(): AggregateIdentifiedBy<AccountId>() {
 
-    lateinit var name: String private set
+    internal lateinit var name: String private set
 
     @CommandHandler
     constructor(command: CreateAccount): this() {
-        apply(AccountCreated(command.accountId, command.name))
+        if (validate(command))
+            apply(AccountCreated(command.accountId, command.name))
+    }
+
+    fun validate(command: CreateAccount): Boolean {
+        return true
     }
 
     @EventSourcingHandler
@@ -44,7 +51,7 @@ data class CreateAccount(@TargetAggregateIdentifier val accountId: AccountId, va
 data class AccountCreated(val accountId: AccountId, val name: String)
 
 @Service
-class Accounts() {
+class AccountService() {
 
     private lateinit var accounts: Repository<Account>
 
@@ -54,10 +61,21 @@ class Accounts() {
 
     @CommandHandler
     fun handle(command: RenameAccount) {
-        val account = accounts.load(command.accountId.id)
-        account.execute { a ->
-            if (a.name != "testAccountRenamed")
-                apply(AccountRenamed(a.id, command.name))
+        val loaded = validate(command)
+        if (loaded != null) {
+            val account = loaded[0] as Aggregate<Account>
+            account.execute { a ->
+                if (a.name != "testAccountRenamed")
+                    apply(AccountRenamed(a.id, command.name))
+            }
+        }
+    }
+
+    fun validate(command: RenameAccount): List<Any>? {
+        try {
+            return listOf(accounts.load(command.accountId.id))
+        } catch (e: AggregateNotFoundException) {
+            return null
         }
     }
 
