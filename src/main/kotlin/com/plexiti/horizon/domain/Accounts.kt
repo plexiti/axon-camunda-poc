@@ -10,6 +10,7 @@ import org.axonframework.commandhandling.model.AggregateNotFoundException
 import org.axonframework.commandhandling.model.Repository
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 
@@ -43,9 +44,12 @@ class AccountId(id: String): Identifier<String>(id)
 
 data class CreateAccount(@TargetAggregateIdentifier val accountId: AccountId, val name: String)
 data class AccountCreated(val accountId: AccountId, val name: String)
+data class CheckBalance(@TargetAggregateIdentifier val accountId: AccountId)
 
 @Service
 class AccountService() {
+
+    private val logger = LoggerFactory.getLogger(Account::class.java)
 
     private lateinit var accounts: Repository<Account>
 
@@ -66,6 +70,11 @@ class AccountService() {
         } catch (e: AggregateNotFoundException) {
             //
         }
+    }
+
+    @CommandHandler
+    fun handle(command: CheckBalance) {
+        logger.debug(command.toString())
     }
 
     fun validate(command: RenameAccount): List<Any>? {

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
 @SpringBootApplication
-@ComponentScan("com.plexiti.horizon", "org.camunda.bpm")
+@ComponentScan("com.plexiti", "org.camunda")
 class Horizon {
 
     private val logger = LoggerFactory.getLogger(Horizon::class.java)
