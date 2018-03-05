@@ -4,32 +4,26 @@ import com.plexiti.generics.domain.AggregateIdentifiedBy
 import com.plexiti.generics.domain.Identifier
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.TargetAggregateIdentifier
-import org.axonframework.commandhandling.model.Aggregate
-import org.axonframework.commandhandling.model.AggregateRoot
 
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.commandhandling.model.AggregateNotFoundException
 import org.axonframework.commandhandling.model.Repository
 import org.axonframework.eventsourcing.EventSourcingHandler
+import org.axonframework.spring.stereotype.Aggregate
 import org.springframework.stereotype.Service
 
 
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
-@AggregateRoot
+@Aggregate
 class Account(): AggregateIdentifiedBy<AccountId>() {
 
-    internal lateinit var name: String private set
+    internal lateinit var name: String
 
     @CommandHandler
     constructor(command: CreateAccount): this() {
-        if (validate(command))
-            apply(AccountCreated(command.accountId, command.name))
-    }
-
-    fun validate(command: CreateAccount): Boolean {
-        return true
+        apply(AccountCreated(command.accountId, command.name))
     }
 
     @EventSourcingHandler
@@ -61,13 +55,16 @@ class AccountService() {
 
     @CommandHandler
     fun handle(command: RenameAccount) {
-        val loaded = validate(command)
-        if (loaded != null) {
-            val account = loaded[0] as Aggregate<Account>
-            account.execute { a ->
-                if (a.name != "testAccountRenamed")
-                    apply(AccountRenamed(a.id, command.name))
+        try {
+            val account = accounts.load(command.accountId.id)
+            if (account != null) {
+                account.execute { a ->
+                    if (a.name != "testAccountRenamed")
+                        apply(AccountRenamed(a.id, command.name))
+                }
             }
+        } catch (e: AggregateNotFoundException) {
+            //
         }
     }
 
