@@ -7,6 +7,14 @@ import kotlin.reflect.KClass
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
+annotation class SagaCommandFactory
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+annotation class SagaEventFactory
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
 annotation class SagaQueryFactory(val responseType: KClass<*>)
 
 @Retention(AnnotationRetention.RUNTIME)

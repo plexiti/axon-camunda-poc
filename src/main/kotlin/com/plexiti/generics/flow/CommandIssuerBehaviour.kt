@@ -21,13 +21,8 @@ class FlowMessageBehaviour: AbstractBpmnActivityBehavior() {
     private lateinit var eventBus: EventBus
 
     override fun execute(execution: ActivityExecution) {
-        val commandName = property("command", execution.bpmnModelElementInstance)
-        val eventMessage = if (commandName != null) {
-            GenericEventMessage(CommandIssued(execution.processInstanceId, execution.id, commandName))
-        } else {
-            val queryName = property("query", execution.bpmnModelElementInstance)!!
-            GenericEventMessage(QueryRequested(execution.processInstanceId, execution.id, queryName))
-        }
+        val messageName = property("message", execution.bpmnModelElementInstance)!!
+        val eventMessage = GenericEventMessage(MessageRequested(execution.processInstanceId, execution.id, messageName))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
@@ -43,5 +38,4 @@ class FlowMessageBehaviour: AbstractBpmnActivityBehavior() {
 
 }
 
-data class CommandIssued(val processInstanceId: String, val executionId: String, val commandName: String)
-data class QueryRequested(val processInstanceId: String, val executionId: String, val queryName: String)
+data class MessageRequested(val processInstanceId: String, val executionId: String, val messageName: String)

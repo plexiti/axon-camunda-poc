@@ -2,16 +2,13 @@ package com.plexiti.horizon.domain
 
 import com.plexiti.generics.domain.AggregateIdentifiedBy
 import com.plexiti.generics.domain.Identifier
-import com.plexiti.generics.flow.CommandIssued
-import com.plexiti.generics.flow.QueryRequested
-import com.plexiti.generics.flow.SagaQueryFactory
-import com.plexiti.generics.flow.SagaResponseHandler
+import com.plexiti.generics.flow.*
 import com.plexiti.horizon.query.AccountSummary
 import com.plexiti.horizon.query.CheckBalance
-import org.axonframework.commandhandling.CommandBus
-import org.axonframework.commandhandling.CommandHandler
-import org.axonframework.commandhandling.GenericCommandMessage
+import org.axonframework.commandhandling.*
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
+import org.axonframework.eventhandling.EventBus
+import org.axonframework.eventhandling.GenericEventMessage
 import org.axonframework.eventhandling.saga.SagaEventHandler
 import org.axonframework.eventhandling.saga.SagaLifecycle
 import org.axonframework.eventhandling.saga.StartSaga
@@ -63,25 +60,63 @@ class PaymentFlow {
     private lateinit var commandBus: CommandBus
 
     @Autowired @Transient
+    private lateinit var eventBus: EventBus
+
+    @Autowired @Transient
     private lateinit var queryBus: QueryBus
 
     @Autowired @Transient
     private lateinit var processEngine: ProcessEngine
 
     @SagaEventHandler(associationProperty = "processInstanceId")
-    fun on(event: CommandIssued) {
-        val command = createMessage(event.commandName)
-        logger.debug(command.toString())
-        commandBus.dispatch(GenericCommandMessage(command))
+    fun on(event: MessageRequested) {
+        val message = createMessage(event.messageName)
+        logger.debug(message.toString())
+        if (isCommand(message)) {
+            processCommand(event, message)
+        } else if (isEvent(message)) {
+            processEvent(event, message)
+        } else {
+            processQuery(event, message)
+        }
     }
 
-    @SagaEventHandler(associationProperty = "processInstanceId")
-    fun on(event: QueryRequested) {
+    private fun processCommand(event: MessageRequested, message: Any) {
+        commandBus.dispatch(GenericCommandMessage(message), object: CommandCallback<Any,Any> {
 
-        val query = createMessage(event.queryName)
-        logger.debug(query.toString())
+            override fun onSuccess(commandMessage: CommandMessage<out Any>?, result: Any?) {
+                var done = false
+                do {
+                    try {
+                        Thread.sleep(25)
+                        processEngine.runtimeService.signal(event.executionId, null, null, variables())
+                        done = true
+                    } catch (e: ProcessEngineException) {
+                    }
+                } while (!done)
+            }
+
+            override fun onFailure(commandMessage: CommandMessage<out Any>?, cause: Throwable) {
+                var done = false
+                do {
+                    try {
+                        Thread.sleep(25)
+                        processEngine.runtimeService.signal(event.executionId, cause::class.java.canonicalName, cause.message, null)
+                        done = true
+                    } catch (e: ProcessEngineException) {
+                    }
+                } while (!done)
+            }
+
+        })
+    }
+
+    private fun processEvent(event: MessageRequested, message: Any) {
+        eventBus.publish(GenericEventMessage(message))
+    }
+
+    private fun processQuery(event: MessageRequested, query: Any) {
         val q = queryBus.query(GenericQueryMessage(query, returnType(query::class).java))
-
         q.whenCompleteAsync { result, exception ->
             handleResponse(result)
             var done = false
@@ -95,15 +130,32 @@ class PaymentFlow {
             } while (!done)
             logger.debug(result.toString())
         }
+    }
 
+    private fun isCommand(message: Any): Boolean {
+        return this::class.memberFunctions.find {
+            val returnTypeOfMethod = it.returnType.jvmErasure
+            val isSagaCommandFactory = it.findAnnotation<SagaCommandFactory>() != null
+            returnTypeOfMethod.equals(message::class) && isSagaCommandFactory
+        } != null
+    }
+
+    private fun isEvent(message: Any): Boolean {
+        return this::class.memberFunctions.find {
+            val returnTypeOfMethod = it.returnType.jvmErasure
+            val isSagaEventFactory = it.findAnnotation<SagaEventFactory>() != null
+            returnTypeOfMethod.equals(message::class) && isSagaEventFactory
+        } != null
     }
 
     private fun createMessage(type: String): Any {
         val re = Class.forName(type).kotlin
         val factoryMethod = this::class.memberFunctions.find {
             val returnTypeOfMethod = it.returnType.jvmErasure
-            val isSagaMessageFactory = it.findAnnotation<SagaQueryFactory>() != null
-            returnTypeOfMethod.equals(re) && isSagaMessageFactory
+            val isSagaCommandFactory = it.findAnnotation<SagaCommandFactory>() != null
+            val isSagaEventFactory = it.findAnnotation<SagaEventFactory>() != null
+            val isSagaQueryFactory = it.findAnnotation<SagaQueryFactory>() != null
+            returnTypeOfMethod.equals(re) && (isSagaCommandFactory || isSagaEventFactory || isSagaQueryFactory)
         }!!
         return factoryMethod.call(this)!!
     }
@@ -160,6 +212,11 @@ class PaymentFlow {
     @SagaQueryFactory(responseType = AccountSummary::class)
     fun createCheckBalance(): CheckBalance {
         return CheckBalance(account)
+    }
+
+    @SagaCommandFactory
+    fun createChargeCreditCard(): ChargeCreditCard {
+        return ChargeCreditCard(account, amount)
     }
 
     @SagaResponseHandler

@@ -2,10 +2,10 @@
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.11.3">
   <bpmn:process id="Payment" name="Payment" isExecutable="true">
     <bpmn:sequenceFlow id="SequenceFlow_1q648th" sourceRef="StartEvent_1" targetRef="Task_0cvmscw" />
-    <bpmn:serviceTask id="Task_0cvmscw" name="Check customer account balance" camunda:delegateExpression="${queuer}">
+    <bpmn:serviceTask id="Task_0cvmscw" name="Check customer account balance" camunda:delegateExpression="${message}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="query" value="com.plexiti.horizon.query.CheckBalance" />
+          <camunda:property name="message" value="com.plexiti.horizon.query.CheckBalance" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1q648th</bpmn:incoming>
@@ -44,7 +44,12 @@
       <bpmn:errorEventDefinition />
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_17vx50e" sourceRef="BoundaryEvent_0xawlp8" targetRef="Task_1gui4vf" />
-    <bpmn:serviceTask id="Task_0vr8mvr" name="Charge credit card" camunda:type="external" camunda:topic="abc">
+    <bpmn:serviceTask id="Task_0vr8mvr" name="Charge credit card" camunda:delegateExpression="${message}">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="message" value="com.plexiti.horizon.domain.ChargeCreditCard" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0r0szyx</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1yc74ur</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_10kidia</bpmn:incoming>
@@ -80,7 +85,7 @@
     <bpmn:serviceTask id="Task_1r4av6f" name="Credit charge &#10;to account" isForCompensation="true" camunda:type="external" camunda:topic="" />
     <bpmn:endEvent id="EndEvent_15oscy6" name="Payment&#10;received">
       <bpmn:incoming>SequenceFlow_0ulp52k</bpmn:incoming>
-      <bpmn:messageEventDefinition />
+      <bpmn:messageEventDefinition camunda:type="external" camunda:topic="abc" />
     </bpmn:endEvent>
     <bpmn:intermediateThrowEvent id="EndEvent_1b2osk8" name="Payment&#10;aborted">
       <bpmn:incoming>SequenceFlow_1jpspva</bpmn:incoming>
