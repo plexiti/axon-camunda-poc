@@ -12,10 +12,10 @@ import org.springframework.stereotype.Component
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
-@Component("queuer")
-class FlowCommandQueuer : AbstractBpmnActivityBehavior() {
+@Component("message")
+class FlowMessageBehaviour: AbstractBpmnActivityBehavior() {
 
-    private val logger = LoggerFactory.getLogger(FlowCommandQueuer::class.java)
+    private val logger = LoggerFactory.getLogger(FlowMessageBehaviour::class.java)
 
     @Autowired
     private lateinit var eventBus: EventBus
@@ -45,4 +45,3 @@ class FlowCommandQueuer : AbstractBpmnActivityBehavior() {
 
 data class CommandIssued(val processInstanceId: String, val executionId: String, val commandName: String)
 data class QueryRequested(val processInstanceId: String, val executionId: String, val queryName: String)
-// data class QueryResponsed(val processInstanceId: String, val executionId: String, val resultSet: Map<String, Object>)

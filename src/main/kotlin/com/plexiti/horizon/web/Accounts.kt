@@ -1,17 +1,15 @@
 package com.plexiti.horizon.web
 
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestMapping
 import com.plexiti.generics.web.Resource
 import com.plexiti.horizon.domain.AccountId
 import com.plexiti.horizon.domain.CreateAccount
+import com.plexiti.horizon.domain.CreditToAccount
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
 
 /**
@@ -31,7 +29,18 @@ class AccountController {
     fun accounts(@RequestParam(value = "name", required = true) name: String): ResponseEntity<CreateAccount> {
         val command = CreateAccount(name)
         try {
-            commandGateway.send<CreateAccount>(command).get()
+            commandGateway.send<CreateAccount>(command)
+            return ResponseEntity(HttpStatus.OK)
+        } catch (e: RuntimeException) {
+            return ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @RequestMapping("/{id}/credit", method = arrayOf(RequestMethod.PUT)) @ResponseBody
+    fun credit(@PathVariable(value = "id", required = true) id: String, @RequestParam(value = "amount", required = true) amount: Float): ResponseEntity<CreditToAccount> {
+        val command = CreditToAccount(AccountId(id), amount)
+        try {
+            commandGateway.send<CreditToAccount>(command)
             return ResponseEntity(HttpStatus.OK)
         } catch (e: RuntimeException) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)

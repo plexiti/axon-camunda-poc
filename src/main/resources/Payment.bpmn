@@ -18,7 +18,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_049kq75" sourceRef="Task_0cvmscw" targetRef="ExclusiveGateway_032y4gi" />
     <bpmn:sequenceFlow id="SequenceFlow_06hj8g5" name="yes" sourceRef="ExclusiveGateway_032y4gi" targetRef="Task_0yyle2z">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{false}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{creditAvailable}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:serviceTask id="Task_0yyle2z" name="Debit charge from account" camunda:type="external" camunda:topic="abc">
       <bpmn:incoming>SequenceFlow_06hj8g5</bpmn:incoming>
@@ -37,7 +37,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{false}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0r0szyx" name="no" sourceRef="ExclusiveGateway_032y4gi" targetRef="Task_0vr8mvr">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{true}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{not creditAvailable}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:boundaryEvent id="BoundaryEvent_0xawlp8" name="Credit card payment failed" attachedToRef="Task_0vr8mvr">
       <bpmn:outgoing>SequenceFlow_17vx50e</bpmn:outgoing>
@@ -124,7 +124,7 @@
       <bpmndi:BPMNShape id="ExclusiveGateway_032y4gi_di" bpmnElement="ExclusiveGateway_032y4gi" isMarkerVisible="true">
         <dc:Bounds x="417" y="95" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="402" y="62" width="80" height="12" />
+          <dc:Bounds x="401" y="71" width="82" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_049kq75_di" bpmnElement="SequenceFlow_049kq75">
