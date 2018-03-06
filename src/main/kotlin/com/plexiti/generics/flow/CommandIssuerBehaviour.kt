@@ -9,11 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 
-
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
-@Component("command")
+@Component("queuer")
 class FlowCommandQueuer : AbstractBpmnActivityBehavior() {
 
     private val logger = LoggerFactory.getLogger(FlowCommandQueuer::class.java)
@@ -23,8 +22,13 @@ class FlowCommandQueuer : AbstractBpmnActivityBehavior() {
 
     override fun execute(execution: ActivityExecution) {
         val commandName = property("command", execution.bpmnModelElementInstance)
-        val event = CommandIssued(execution.processInstanceId, execution.id, commandName)
-        val eventMessage = GenericEventMessage.asEventMessage<CommandIssued>(event)
+        val eventMessage = if (commandName != null) {
+            GenericEventMessage(CommandIssued(execution.processInstanceId, execution.id, commandName))
+        } else {
+            val queryName = property("query", execution.bpmnModelElementInstance)!!
+            GenericEventMessage(QueryRequested(execution.processInstanceId, execution.id, queryName))
+        }
+        logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
 
@@ -39,5 +43,6 @@ class FlowCommandQueuer : AbstractBpmnActivityBehavior() {
 
 }
 
-data class FlowCommand(val processInstanceId: String, val executionId: String, val commandName: String)
 data class CommandIssued(val processInstanceId: String, val executionId: String, val commandName: String)
+data class QueryRequested(val processInstanceId: String, val executionId: String, val queryName: String)
+// data class QueryResponsed(val processInstanceId: String, val executionId: String, val resultSet: Map<String, Object>)

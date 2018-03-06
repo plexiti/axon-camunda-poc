@@ -28,18 +28,4 @@ class AccountTest {
             .expectEvents(AccountCreated(AccountId("accountId"), "testAccount"))
     }
 
-    @Test
-    fun testRenameAccount() {
-        account.given(AccountCreated(AccountId("accountId"), "testAccount"))
-            .`when`(RenameAccount(AccountId("accountId"), "testAccountRenamed"))
-            .expectEvents(AccountRenamed(AccountId("accountId"), "testAccountRenamed"))
-    }
-
-    @Test
-    fun testRenameRenamedAccount() {
-        account.given(AccountCreated(AccountId("accountId"), "testAccount"), AccountRenamed(AccountId("accountId"), "testAccountRenamed"))
-            .`when`(RenameAccount(AccountId("accountId"), "testAccount"))
-            .expectNoEvents()
-    }
-
 }

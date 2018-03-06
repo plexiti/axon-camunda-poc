@@ -5,8 +5,13 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestMapping
-import java.util.concurrent.atomic.AtomicLong
 import com.plexiti.generics.web.Resource
+import com.plexiti.horizon.domain.AccountId
+import com.plexiti.horizon.domain.CreateAccount
+import org.axonframework.commandhandling.gateway.CommandGateway
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 
 
 /**
@@ -19,15 +24,18 @@ data class Account(val id: String, val name: String)
 @RequestMapping("/accounts")
 class AccountController {
 
-    private val counter = AtomicLong()
+    @Autowired
+    private lateinit var commandGateway: CommandGateway
 
-    @RequestMapping(method = arrayOf(RequestMethod.GET)) @ResponseBody
-    fun accounts(@RequestParam(value = "name", required = false, defaultValue = "testAccount") name: String): Account {
-        return Account("${counter.incrementAndGet()}", String.format(template, name))
-    }
-
-    companion object {
-        private val template = "%s"
+    @RequestMapping(method = arrayOf(RequestMethod.POST)) @ResponseBody
+    fun accounts(@RequestParam(value = "name", required = true) name: String): ResponseEntity<CreateAccount> {
+        val command = CreateAccount(name)
+        try {
+            commandGateway.send<CreateAccount>(command).get()
+            return ResponseEntity(HttpStatus.OK)
+        } catch (e: RuntimeException) {
+            return ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
     }
 
 }

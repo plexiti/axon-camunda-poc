@@ -3,7 +3,10 @@ package com.plexiti.horizon.domain
 import com.plexiti.generics.domain.AggregateIdentifiedBy
 import com.plexiti.generics.domain.Identifier
 import com.plexiti.generics.flow.CommandIssued
+import com.plexiti.generics.flow.QueryRequested
 import com.plexiti.generics.flow.SagaMessageFactory
+import com.plexiti.horizon.query.AccountSummary
+import com.plexiti.horizon.query.CheckBalance
 import org.axonframework.commandhandling.*
 
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
@@ -12,10 +15,13 @@ import org.axonframework.spring.stereotype.Saga
 import org.axonframework.eventhandling.saga.SagaEventHandler
 import org.axonframework.eventhandling.saga.StartSaga
 import org.axonframework.eventhandling.saga.SagaLifecycle
+import org.axonframework.queryhandling.GenericQueryMessage
+import org.axonframework.queryhandling.QueryBus
 import org.axonframework.spring.stereotype.Aggregate
 import org.springframework.beans.factory.annotation.Autowired
 import org.camunda.bpm.engine.ProcessEngine
 import org.slf4j.LoggerFactory
+import java.util.*
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.jvmErasure
@@ -27,25 +33,22 @@ import kotlin.reflect.jvm.jvmErasure
 @Aggregate
 class Payment(): AggregateIdentifiedBy<PaymentId>() {
 
-    internal var amount = 0F;
-
     @CommandHandler
     constructor(command: RetrievePayment): this() {
-        apply(PaymentCreated(command.paymentId, command.amount))
+        apply(PaymentCreated(PaymentId(UUID.randomUUID().toString()), command.account, command.amount))
     }
 
     @EventSourcingHandler
     protected fun on(event: PaymentCreated) {
         this.id = PaymentId(event.paymentId.id)
-        this.amount = event.amount
     }
 
 }
 
 class PaymentId(id: String): Identifier<String>(id)
 
-data class RetrievePayment(@TargetAggregateIdentifier val paymentId: PaymentId, val amount: Float)
-data class PaymentCreated(val paymentId: PaymentId, val amount: Float)
+data class RetrievePayment(val account: String, val amount: Float)
+data class PaymentCreated(val paymentId: PaymentId, val account: String, val amount: Float)
 
 @Saga
 class PaymentFlow {
@@ -56,33 +59,58 @@ class PaymentFlow {
     private lateinit var commandBus: CommandBus
 
     @Autowired @Transient
+    private lateinit var queryBus: QueryBus
+
+    @Autowired @Transient
     private lateinit var processEngine: ProcessEngine
 
-    @StartSaga @SagaEventHandler(associationProperty = "paymentId")
-    fun on(event: PaymentCreated) {
+    @SagaEventHandler(associationProperty = "processInstanceId")
+    fun on(event: CommandIssued) {
+        val command = createMessage(event.commandName)
+        logger.debug(command.toString())
+        commandBus.dispatch(GenericCommandMessage(command))
+    }
+
+    @SagaEventHandler(associationProperty = "processInstanceId")
+    fun on(event: QueryRequested) {
+        val query = createMessage(event.queryName)
+        logger.debug(query.toString())
+        val q = queryBus.query(GenericQueryMessage(query, AccountSummary::class.java)) // TODO generify
+        val result = q.get()
+        logger.debug(result.toString())
+    }
+
+    private fun createMessage(type: String): Any {
+        val re = Class.forName(type).kotlin
+        val factoryMethod = this::class.memberFunctions.find {
+            val returnTypeOfMethod = it.returnType.jvmErasure
+            val isSagaMessageFactory = it.findAnnotation<SagaMessageFactory>() != null
+            returnTypeOfMethod.equals(re) && isSagaMessageFactory
+        }!!
+        return factoryMethod.call(this)!!
+    }
+
+    private fun createFlow(type: String) {
         val instance = processEngine.runtimeService
-            .startProcessInstanceByMessage(event.javaClass.canonicalName)
+                .startProcessInstanceByKey(type)
         SagaLifecycle.associateWith("processInstanceId", instance.processInstanceId)
     }
 
-    @StartSaga @SagaEventHandler(associationProperty = "processInstanceId")
-    fun on(event: CommandIssued) {
-        val clazz = Class.forName(event.commandName).kotlin
-        val factoryMethod = this::class.memberFunctions.find {
-            val returnType = it.returnType.jvmErasure
-            val annotation = it.findAnnotation<SagaMessageFactory>() != null
-            val returnTypeOk = returnType.equals(clazz)
-            returnTypeOk && annotation
-        }!!
-        val command = factoryMethod.call(this)
+    //
 
-        val commandMessage = GenericCommandMessage(command)
-        commandBus.dispatch(commandMessage)
+    private lateinit var account: String
+    private var amount: Float = 0F
+
+    @StartSaga @SagaEventHandler(associationProperty = "paymentId")
+    fun on(event: PaymentCreated) {
+        account = event.account
+        amount = event.amount
+        createFlow("Payment")
     }
 
     @SagaMessageFactory
     fun createCheckBalance(): CheckBalance {
-        return CheckBalance(AccountId("someAccount"))
+        return CheckBalance(account)
     }
 
 }
