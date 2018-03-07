@@ -46,4 +46,15 @@ class AccountController {
         }
     }
 
+    @RequestMapping("/{name}/updateCard", method = arrayOf(RequestMethod.PUT)) @ResponseBody
+    fun updateCreditCardDetails(@PathVariable(value = "name", required = true) name: String): ResponseEntity<UpdateCreditCardDetails> {
+        val command = UpdateCreditCardDetails(AccountId(name))
+        try {
+            commandGateway.send<UpdateCreditCardDetails>(command)
+            return ResponseEntity(HttpStatus.OK)
+        } catch (e: RuntimeException) {
+            return ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
+    }
+
 }

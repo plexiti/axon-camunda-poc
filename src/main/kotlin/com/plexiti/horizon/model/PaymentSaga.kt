@@ -144,8 +144,13 @@ class PaymentSaga {
 
     private fun attachProcessInstance(type: String) {
         val instance = processEngine.runtimeService
-            .startProcessInstanceByKey(type, variables())
+            .startProcessInstanceByKey(type, paymentId.id, variables())
         SagaLifecycle.associateWith("processInstanceId", instance.processInstanceId)
+    }
+
+    private fun messageProcessInstance(message: String) {
+        val instance = processEngine.runtimeService
+                .correlateMessage(message, paymentId.id)
     }
 
     fun variables(): Map<String, Any> { // TODO generify
@@ -249,6 +254,7 @@ class PaymentSaga {
     fun on(event: CreditCardDetailsUpdated) {
         logger.debug(event.toString())
         creditCardExpired = false
+        messageProcessInstance(event::class.java.name)
     }
 
     @EndSaga

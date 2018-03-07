@@ -35,7 +35,7 @@ class CreditCardService() {
     @CommandHandler
     fun handle(command: UpdateCreditCardDetails) {
         logger.debug(command.toString())
-        val eventMessage = GenericEventMessage.asEventMessage<CreditCardCharged>(CreditCardDetailsUpdated(command.accountId))
+        val eventMessage = GenericEventMessage.asEventMessage<CreditCardDetailsUpdated>(CreditCardDetailsUpdated(command.accountId))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
