@@ -1,0 +1,137 @@
+[
+    {
+        "name": "Issue a command",
+        "id": "com.plexiti.commons.application.Command",
+        "appliesTo": [
+            "bpmn:ServiceTask",
+            "bpmn:SendTask"
+        ],
+        "properties": [
+            {
+                "label": "Bean Binding",
+                "type": "Hidden",
+                "value": "${command}",
+                "editable": false,
+                "binding": {
+                    "type": "property",
+                    "name": "camunda:delegateExpression"
+                }
+            },
+            {
+                "label": "Command",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "command"
+                },
+                "constraints": {
+                    "notEmpty": true
+                }
+            }
+        ],
+        "entriesVisible": {
+            "_all": true,
+            "camunda:modelerTemplate": true
+        }
+    },
+    {
+        "name": "Raise an event",
+        "id": "com.plexiti.commons.application.RaisedEvent",
+        "isDefault": false,
+        "appliesTo": [
+            "bpmn:EndEvent",
+            "bpmn:SendTask",
+            "bpmn:IntermediateThrowEvent"
+        ],
+        "properties": [
+            {
+                "label": "Bean Binding",
+                "type": "Hidden",
+                "value": "${event}",
+                "editable": false,
+                "binding": {
+                    "type": "property",
+                    "name": "camunda:delegateExpression"
+                }
+            },
+            {
+                "label": "Event",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "event"
+                },
+                "constraints": {
+                    "notEmpty": true
+                }
+            }
+        ],
+        "entriesVisible": {
+            "_all": true
+        }
+    },
+    {
+        "name": "Query for info",
+        "id": "com.plexiti.commons.application.Query",
+        "isDefault": false,
+        "appliesTo": [
+            "bpmn:ServiceTask"
+        ],
+        "properties": [
+            {
+                "label": "Bean Binding",
+                "type": "Hidden",
+                "value": "${query}",
+                "editable": false,
+                "binding": {
+                    "type": "property",
+                    "name": "camunda:delegateExpression"
+                }
+            },
+            {
+                "label": "Query",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "query"
+                },
+                "constraints": {
+                    "notEmpty": true
+                }
+            }
+        ],
+        "entriesVisible": {
+            "_all": true
+        }
+    },
+    {
+        "name": "Listen to event",
+        "id": "com.plexiti.commons.application.EventListener",
+        "isDefault": false,
+        "appliesTo": [
+            "bpmn:StartEvent",
+            "bpmn:ReceiveTask",
+            "bpmn:IntermediateCatchEvent"
+        ],
+        "properties": [
+            {
+                "label": "Event",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "event"
+                },
+                "constraints": {
+                    "notEmpty": true
+                }
+            }
+        ],
+        "entriesVisible": {
+            "_all": true
+        }
+    }
+]

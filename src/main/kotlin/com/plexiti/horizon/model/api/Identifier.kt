@@ -1,6 +1,5 @@
-package com.plexiti.generics.domain
+package com.plexiti.horizon.model.api
 
-import org.axonframework.commandhandling.model.AggregateIdentifier
 import java.io.Serializable
 
 /**
@@ -32,17 +31,3 @@ abstract class Identifier<ID: Any>(): Serializable {
 
 }
 
-abstract class AggregateIdentifiedBy<ID: Any>(): Identifier<ID>() {
-
-    @AggregateIdentifier
-    override lateinit var id: ID
-
-    protected constructor(id: ID): this() {
-        this.id = id
-    }
-
-    override fun toString(): String {
-        return "${this::class.qualifiedName}(id=${id})"
-    }
-
-}

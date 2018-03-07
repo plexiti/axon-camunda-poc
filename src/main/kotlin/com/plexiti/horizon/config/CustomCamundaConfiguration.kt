@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
 @Component @Order(Ordering.DEFAULT_ORDER + 1)
-class CustomFlowConfiguration : ProcessEnginePlugin {
+class CustomCamundaConfiguration : ProcessEnginePlugin {
 
     override fun preInit(processEngineConfiguration: ProcessEngineConfigurationImpl) {
         processEngineConfiguration.isJobExecutorPreferTimerJobs = true

@@ -90,7 +90,6 @@ dependencies {
 }
 
 noArg {
-    annotation("com.plexiti.generics.web.Resource")
     annotation("javax.persistence.Entity")
 }
 

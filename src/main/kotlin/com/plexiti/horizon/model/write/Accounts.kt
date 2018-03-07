@@ -1,16 +1,12 @@
-package com.plexiti.horizon.domain
+package com.plexiti.horizon.model.write
 
-import com.plexiti.generics.domain.AggregateIdentifiedBy
-import com.plexiti.generics.domain.Identifier
+import com.plexiti.horizon.model.api.*
 import org.axonframework.commandhandling.CommandHandler
-import org.axonframework.commandhandling.TargetAggregateIdentifier
-
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
-import org.axonframework.commandhandling.model.Repository
+
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 import java.util.*
 
 
@@ -47,42 +43,21 @@ class Account(): AggregateIdentifiedBy<AccountId>() {
     protected fun on(event: AccountCreated) {
         logger.debug(event.toString())
         this.id = event.accountId
+        logger.debug(this.toString())
     }
 
     @EventSourcingHandler
     protected fun on(event: AmountWithdrawn) {
         logger.debug(event.toString())
         this.balance -= event.amount
+        logger.debug(this.toString())
     }
 
     @EventSourcingHandler
     protected fun on(event: AmountCredited) {
         logger.debug(event.toString())
         this.balance += event.amount
-    }
-
-}
-
-class AccountId(id: String): Identifier<String>(id)
-
-data class CreateAccount(val name: String)
-data class AccountCreated(@TargetAggregateIdentifier val accountId: AccountId, val name: String)
-
-data class DebitFromAccount(@TargetAggregateIdentifier val accountId: AccountId, val amount: Float)
-data class AmountWithdrawn(@TargetAggregateIdentifier val accountId: AccountId, val amount: Float)
-
-data class CreditToAccount(@TargetAggregateIdentifier val accountId: AccountId, val amount: Float)
-data class AmountCredited(@TargetAggregateIdentifier val accountId: AccountId, val amount: Float)
-
-@Service
-class AccountService() {
-
-    private lateinit var accounts: Repository<Account>
-
-    private val logger = LoggerFactory.getLogger(Account::class.java)
-
-    constructor(accounts: Repository<Account>): this() {
-        this.accounts = accounts
+        logger.debug(this.toString())
     }
 
 }

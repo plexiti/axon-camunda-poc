@@ -1,88 +1,56 @@
-package com.plexiti.horizon.domain
+package com.plexiti.horizon.model
 
-import com.plexiti.generics.domain.AggregateIdentifiedBy
-import com.plexiti.generics.domain.Identifier
-import com.plexiti.generics.flow.*
-import com.plexiti.horizon.query.AccountSummary
-import com.plexiti.horizon.query.CheckBalance
-import org.axonframework.commandhandling.*
-import org.axonframework.commandhandling.model.AggregateLifecycle.apply
+import com.plexiti.horizon.model.api.*
+import com.plexiti.integration.*
+import org.axonframework.commandhandling.CommandBus
+import org.axonframework.commandhandling.CommandCallback
+import org.axonframework.commandhandling.CommandMessage
+import org.axonframework.commandhandling.GenericCommandMessage
 import org.axonframework.eventhandling.EventBus
 import org.axonframework.eventhandling.GenericEventMessage
+import org.axonframework.eventhandling.saga.EndSaga
 import org.axonframework.eventhandling.saga.SagaEventHandler
 import org.axonframework.eventhandling.saga.SagaLifecycle
 import org.axonframework.eventhandling.saga.StartSaga
-import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.queryhandling.GenericQueryMessage
 import org.axonframework.queryhandling.QueryBus
-import org.axonframework.spring.stereotype.Aggregate
 import org.axonframework.spring.stereotype.Saga
 import org.camunda.bpm.engine.ProcessEngine
 import org.camunda.bpm.engine.ProcessEngineException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.jvmErasure
 
-
-/**
- * @author Martin Schimak <martin.schimak@plexiti.com>
- */
-@Aggregate
-class Payment(): AggregateIdentifiedBy<PaymentId>() {
-
-    @CommandHandler
-    constructor(command: RetrievePayment): this() {
-        apply(PaymentCreated(PaymentId(UUID.randomUUID().toString()), command.account, command.amount))
-    }
-
-    @EventSourcingHandler
-    protected fun on(event: PaymentCreated) {
-        this.id = event.paymentId
-    }
-
-}
-
-class PaymentId(id: String): Identifier<String>(id)
-
-data class RetrievePayment(val account: String, val amount: Float)
-data class PaymentCreated(val paymentId: PaymentId, val account: String, val amount: Float)
-
 @Saga
-class PaymentFlow {
+class PaymentSaga {
 
-    private val logger = LoggerFactory.getLogger(PaymentFlow::class.java)
+    private val logger = LoggerFactory.getLogger(PaymentSaga::class.java)
 
-    @Autowired @Transient
+    @Autowired
+    @Transient
     private lateinit var commandBus: CommandBus
 
-    @Autowired @Transient
+    @Autowired
+    @Transient
     private lateinit var eventBus: EventBus
 
-    @Autowired @Transient
+    @Autowired
+    @Transient
     private lateinit var queryBus: QueryBus
 
-    @Autowired @Transient
+    @Autowired
+    @Transient
     private lateinit var processEngine: ProcessEngine
 
     @SagaEventHandler(associationProperty = "processInstanceId")
-    fun on(event: MessageRequested) {
-        val message = createMessage(event.messageName)
-        logger.debug(message.toString())
-        if (isCommand(message)) {
-            processCommand(event, message)
-        } else if (isEvent(message)) {
-            processEvent(event, message)
-        } else {
-            processQuery(event, message)
-        }
-    }
+    fun on(event: CommandIssued) {
 
-    private fun processCommand(event: MessageRequested, message: Any) {
-        commandBus.dispatch(GenericCommandMessage(message), object: CommandCallback<Any,Any> {
+        val message = createMessage(event.messageName)
+
+        commandBus.dispatch(GenericCommandMessage(message), object: CommandCallback<Any, Any> {
 
             override fun onSuccess(commandMessage: CommandMessage<out Any>?, result: Any?) {
                 var done = false
@@ -109,15 +77,23 @@ class PaymentFlow {
             }
 
         })
+
     }
 
-    private fun processEvent(event: MessageRequested, message: Any) {
+    @SagaEventHandler(associationProperty = "processInstanceId")
+    fun on(event: EventRaised) {
+
+        val message = createMessage(event.messageName)
         eventBus.publish(GenericEventMessage(message))
+
     }
 
-    private fun processQuery(event: MessageRequested, query: Any) {
-        val q = queryBus.query(GenericQueryMessage(query, returnType(query::class).java))
-        q.whenCompleteAsync { result, exception ->
+    @SagaEventHandler(associationProperty = "processInstanceId")
+    fun on(event: QueryRequested) {
+
+        val message = createMessage(event.messageName)
+        val q = queryBus.query(GenericQueryMessage(message, returnType(message::class).java))
+        q.whenCompleteAsync { result, _ ->
             handleResponse(result)
             var done = false
             do {
@@ -130,22 +106,7 @@ class PaymentFlow {
             } while (!done)
             logger.debug(result.toString())
         }
-    }
 
-    private fun isCommand(message: Any): Boolean {
-        return this::class.memberFunctions.find {
-            val returnTypeOfMethod = it.returnType.jvmErasure
-            val isSagaCommandFactory = it.findAnnotation<SagaCommandFactory>() != null
-            returnTypeOfMethod.equals(message::class) && isSagaCommandFactory
-        } != null
-    }
-
-    private fun isEvent(message: Any): Boolean {
-        return this::class.memberFunctions.find {
-            val returnTypeOfMethod = it.returnType.jvmErasure
-            val isSagaEventFactory = it.findAnnotation<SagaEventFactory>() != null
-            returnTypeOfMethod.equals(message::class) && isSagaEventFactory
-        } != null
     }
 
     private fun createMessage(type: String): Any {
@@ -190,38 +151,66 @@ class PaymentFlow {
 
     fun variables(): Map<String, Any> { // TODO generify
         return mapOf (
-            "account" to account,
-            "amount" to amount,
             "creditAvailable" to creditAvailable
         )
     }
 
     // This is the only saga code necessary once a proper integration Axon / Camunda exists
 
+    private lateinit var paymentId: PaymentId
     private lateinit var account: String
     private var amount: Float = 0F
     private var creditAvailable = false
+    private var creditCardExpired = false
 
-    @StartSaga @SagaEventHandler(associationProperty = "paymentId")
+    @StartSaga
+    @SagaEventHandler(associationProperty = "account")
     fun on(event: PaymentCreated) {
+        logger.debug(event.toString())
         account = event.account
+        paymentId = event.paymentId
         amount = event.amount
-        attachProcessInstance("Payment")
+        creditCardExpired = account == "kermit"
+        attachProcessInstance("PaymentSaga")
     }
 
     @SagaQueryFactory(responseType = AccountSummary::class)
-    fun createCheckBalance(): CheckBalance {
-        return CheckBalance(account)
+    fun checkBalance(): DocumentAccountSummary {
+        val query = DocumentAccountSummary(account)
+        logger.debug(query.toString())
+        return query
     }
 
     @SagaCommandFactory
-    fun createChargeCreditCard(): ChargeCreditCard {
-        return ChargeCreditCard(account, amount)
+    fun chargeCreditCard(): ChargeCreditCard {
+        val command = ChargeCreditCard(account, amount, creditCardExpired)
+        logger.debug(command.toString())
+        return command
+    }
+
+    @SagaEventFactory
+    fun paymentReceived(): PaymentReceived {
+        val event = PaymentReceived(paymentId, account, amount)
+        logger.debug(event.toString())
+        return event
     }
 
     @SagaResponseHandler
     fun handle(accountSummary: AccountSummary) {
+        logger.debug(accountSummary.toString())
         creditAvailable = accountSummary.balance > 0
+    }
+
+    @SagaEventHandler(associationProperty = "owner", keyName = "account")
+    fun on(event: CreditCardDetailsUpdated) {
+        logger.debug(event.toString())
+        creditCardExpired = false
+    }
+
+    @EndSaga
+    @SagaEventHandler(associationProperty = "account")
+    fun on(event: PaymentReceived) {
+        logger.debug(event.toString())
     }
 
 }

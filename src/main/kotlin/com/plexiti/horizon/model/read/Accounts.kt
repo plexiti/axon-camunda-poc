@@ -1,26 +1,16 @@
-package com.plexiti.horizon.query
+package com.plexiti.horizon.model.read
 
-import com.plexiti.horizon.domain.AccountCreated
-import com.plexiti.horizon.domain.AmountCredited
-import com.plexiti.horizon.domain.AmountWithdrawn
+import com.plexiti.horizon.model.api.*
 import org.axonframework.eventhandling.EventHandler
 import org.axonframework.queryhandling.QueryHandler
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import javax.persistence.Entity
 import javax.persistence.EntityManager
-import javax.persistence.Id
-
-/**
- * @author Martin Schimak <martin.schimak@plexiti.com>
- */
-@Entity
-data class AccountSummary(@Id val id: String, val name: String, var balance: Float)
 
 @Component
-class AccountProjection(private val entityManager: EntityManager) {
+class Accounts(private val entityManager: EntityManager) {
 
-    private val logger = LoggerFactory.getLogger(AccountProjection::class.java)
+    private val logger = LoggerFactory.getLogger(Accounts::class.java)
 
     @EventHandler
     fun on(event: AccountCreated) {
@@ -29,7 +19,7 @@ class AccountProjection(private val entityManager: EntityManager) {
     }
 
     @QueryHandler
-    fun process(query: CheckBalance): AccountSummary {
+    fun process(query: DocumentAccountSummary): AccountSummary {
         logger.debug(query.toString())
         return entityManager.createQuery("select a from AccountSummary a where a.name=:account")
             .setParameter("account", query.name)
@@ -52,4 +42,3 @@ class AccountProjection(private val entityManager: EntityManager) {
 
 }
 
-data class CheckBalance(val name: String)
