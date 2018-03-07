@@ -7,7 +7,11 @@ import org.axonframework.commandhandling.TargetAggregateIdentifier
  */
 class PaymentId(id: String): Identifier<String>(id)
 
-data class RetrievePayment(val account: String, val amount: Float)
-data class PaymentCreated(val paymentId: PaymentId, val account: String, val amount: Float)
+data class RetrievePayment(val accountId: AccountId, val amount: Float)
+data class PaymentCreated(val paymentId: PaymentId, val accountId: AccountId, val amount: Float)
 
-data class PaymentReceived(@TargetAggregateIdentifier val paymentId: PaymentId, val account: String, val amount: Float)
+data class PaymentFullyCoveredByAccount(@TargetAggregateIdentifier val paymentId: PaymentId, val accountId: AccountId, val amount: Float)
+data class PaymentPartlyCoveredByAccount(@TargetAggregateIdentifier val paymentId: PaymentId, val accountId: AccountId, val amount: Float)
+
+data class PaymentReceived(@TargetAggregateIdentifier val paymentId: PaymentId, val accountId: AccountId, val amount: Float)
+data class PaymentNotReceived(@TargetAggregateIdentifier val paymentId: PaymentId, val accountId: AccountId, val amount: Float)

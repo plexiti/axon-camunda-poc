@@ -18,17 +18,25 @@ class Payment(): AggregateIdentifiedBy<PaymentId>() {
     private val logger = LoggerFactory.getLogger(Account::class.java)
 
     private var received = false
+    private var failed = false
 
     @CommandHandler
     constructor(command: RetrievePayment): this() {
         logger.debug(command.toString())
-        apply(PaymentCreated(PaymentId(UUID.randomUUID().toString()), command.account, command.amount))
+        apply(PaymentCreated(PaymentId(UUID.randomUUID().toString()), command.accountId, command.amount))
     }
 
     @EventSourcingHandler
     protected fun on(event: PaymentCreated) {
         logger.debug(event.toString())
         this.id = event.paymentId
+        logger.debug(this.toString())
+    }
+
+    @EventSourcingHandler
+    protected fun on(event: PaymentNotReceived) {
+        logger.debug(event.toString())
+        this.failed = true
         logger.debug(this.toString())
     }
 

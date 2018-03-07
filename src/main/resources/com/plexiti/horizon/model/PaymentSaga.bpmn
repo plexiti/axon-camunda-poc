@@ -11,7 +11,7 @@
       <bpmn:incoming>SequenceFlow_1q648th</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_049kq75</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="ExclusiveGateway_032y4gi" name="Credit available?">
+    <bpmn:exclusiveGateway id="ExclusiveGateway_032y4gi" name="Credit available?" camunda:asyncBefore="true">
       <bpmn:incoming>SequenceFlow_049kq75</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_06hj8g5</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0r0szyx</bpmn:outgoing>
@@ -23,23 +23,23 @@
     <bpmn:serviceTask id="Task_0yyle2z" name="Debit charge from account" camunda:modelerTemplate="com.plexiti.commons.application.Command" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="command" value="com.plexiti.horizon.model.api.DebitAmountFromAccount" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.WithdrawAmount" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_06hj8g5</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0g9aenz</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="ExclusiveGateway_0hekyt4" name="Payment fully covered">
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0hekyt4" name="Payment fully covered" camunda:asyncBefore="true">
       <bpmn:incoming>SequenceFlow_0g9aenz</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0djij4m</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_117993c</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0g9aenz" sourceRef="Task_0yyle2z" targetRef="ExclusiveGateway_0hekyt4" />
     <bpmn:sequenceFlow id="SequenceFlow_0djij4m" name="yes" sourceRef="ExclusiveGateway_0hekyt4" targetRef="EndEvent_16s3byo">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{true}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{creditFullyCovering}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_117993c" name="no" sourceRef="ExclusiveGateway_0hekyt4" targetRef="IntermediateThrowEvent_0h7v72w">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{false}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{not creditFullyCovering}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0r0szyx" name="no" sourceRef="ExclusiveGateway_032y4gi" targetRef="Task_0vr8mvr">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{not creditAvailable}</bpmn:conditionExpression>
@@ -49,7 +49,7 @@
       <bpmn:errorEventDefinition />
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_17vx50e" sourceRef="BoundaryEvent_0xawlp8" targetRef="Task_1gui4vf" />
-    <bpmn:serviceTask id="Task_0vr8mvr" name="Charge credit card" camunda:modelerTemplate="com.plexiti.commons.application.Command" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
+    <bpmn:serviceTask id="Task_0vr8mvr" name="Charge credit card" camunda:modelerTemplate="com.plexiti.commons.application.Command" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.ChargeCreditCard" />
@@ -63,14 +63,14 @@
     <bpmn:boundaryEvent id="BoundaryEvent_0t0ikmi" name="2 weeks" attachedToRef="Task_1gui4vf">
       <bpmn:outgoing>SequenceFlow_1jpspva</bpmn:outgoing>
       <bpmn:timerEventDefinition>
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P14D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1M</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1jpspva" sourceRef="BoundaryEvent_0t0ikmi" targetRef="EndEvent_1b2osk8" />
     <bpmn:boundaryEvent id="BoundaryEvent_0eiw3j4" cancelActivity="false" attachedToRef="Task_1gui4vf">
       <bpmn:outgoing>SequenceFlow_13umfbk</bpmn:outgoing>
       <bpmn:timerEventDefinition>
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P2D</bpmn:timeDuration>
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R5/PT10S</bpmn:timeCycle>
       </bpmn:timerEventDefinition>
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_13umfbk" name="Every&#10;2 days" sourceRef="BoundaryEvent_0eiw3j4" targetRef="EndEvent_1oelcbo" />
@@ -88,10 +88,10 @@
     <bpmn:boundaryEvent id="BoundaryEvent_1r1o6id" attachedToRef="Task_0yyle2z">
       <bpmn:compensateEventDefinition />
     </bpmn:boundaryEvent>
-    <bpmn:serviceTask id="Task_1r4av6f" name="Credit charge &#10;to account" camunda:modelerTemplate="com.plexiti.commons.application.Command" isForCompensation="true" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
+    <bpmn:serviceTask id="Task_1r4av6f" name="Credit charge &#10;to account" camunda:modelerTemplate="com.plexiti.commons.application.Command" isForCompensation="true" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="command" value="com.plexiti.horizon.model.api.DebitAmountToAccount" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.CreditAmount" />
         </camunda:properties>
       </bpmn:extensionElements>
     </bpmn:serviceTask>

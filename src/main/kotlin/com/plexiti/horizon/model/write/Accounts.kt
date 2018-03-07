@@ -7,7 +7,6 @@ import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
-import java.util.*
 
 
 /**
@@ -23,18 +22,18 @@ class Account(): AggregateIdentifiedBy<AccountId>() {
     @CommandHandler
     constructor(command: CreateAccount): this() {
         logger.debug(command.toString())
-        apply(AccountCreated(AccountId(UUID.randomUUID().toString()), command.name))
+        apply(AccountCreated(AccountId(command.name)))
     }
 
     @CommandHandler
-    fun handle(command: DebitFromAccount) {
+    fun handle(command: WithdrawAmount) {
         logger.debug(command.toString())
         val debit = if (command.amount > balance) balance else command.amount
         apply(AmountWithdrawn(command.accountId, debit))
     }
 
     @CommandHandler
-    fun handle(command: CreditToAccount) {
+    fun handle(command: CreditAmount) {
         logger.debug(command.toString())
         apply(AmountCredited(command.accountId, command.amount))
     }

@@ -1,5 +1,6 @@
 package com.plexiti.horizon.web
 
+import com.plexiti.horizon.model.api.AccountId
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
@@ -24,7 +25,7 @@ class PaymentController {
 
     @RequestMapping(method = arrayOf(RequestMethod.POST)) @ResponseBody
     fun payments(@RequestParam(value = "account", required = true) account: String, @RequestParam(value = "amount", required = true) amount: Float): ResponseEntity<RetrievePayment> {
-        val command = RetrievePayment(account, amount)
+        val command = RetrievePayment(AccountId(account), amount)
         commandGateway.send<RetrievePayment>(command)
         return ResponseEntity(HttpStatus.ACCEPTED)
     }

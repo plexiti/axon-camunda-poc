@@ -27,7 +27,7 @@ class CreditCardService() {
         logger.debug(command.toString())
         if (command.expired)
             throw IllegalArgumentException("Credit Card is expired!")
-        val eventMessage = GenericEventMessage.asEventMessage<CreditCardCharged>(CreditCardCharged(command.owner, command.amount))
+        val eventMessage = GenericEventMessage.asEventMessage<CreditCardCharged>(CreditCardCharged(command.accountId, command.amount))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
@@ -35,7 +35,7 @@ class CreditCardService() {
     @CommandHandler
     fun handle(command: UpdateCreditCardDetails) {
         logger.debug(command.toString())
-        val eventMessage = GenericEventMessage.asEventMessage<CreditCardCharged>(CreditCardDetailsUpdated(command.owner))
+        val eventMessage = GenericEventMessage.asEventMessage<CreditCardCharged>(CreditCardDetailsUpdated(command.accountId))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }

@@ -15,15 +15,13 @@ class Accounts(private val entityManager: EntityManager) {
     @EventHandler
     fun on(event: AccountCreated) {
         logger.debug(event.toString())
-        entityManager.persist(AccountSummary(event.accountId.id, event.name, 0F))
+        entityManager.persist(AccountSummary(event.accountId.id, 0F))
     }
 
     @QueryHandler
     fun process(query: DocumentAccountSummary): AccountSummary {
         logger.debug(query.toString())
-        return entityManager.createQuery("select a from AccountSummary a where a.name=:account")
-            .setParameter("account", query.name)
-            .singleResult as AccountSummary
+        return entityManager.find(AccountSummary::class.java, query.accountId.id)
     }
 
     @EventHandler
