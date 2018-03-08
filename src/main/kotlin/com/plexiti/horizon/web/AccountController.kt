@@ -35,7 +35,7 @@ class AccountController {
         }
     }
 
-    @RequestMapping("/{name}/credit", method = arrayOf(RequestMethod.PUT)) @ResponseBody
+    @RequestMapping("/{name}/credit", method = arrayOf(RequestMethod.POST)) @ResponseBody
     fun credit(@PathVariable(value = "name", required = true) name: String, @RequestParam(value = "amount", required = true) amount: Float): ResponseEntity<CreditAmount> {
         val command = CreditAmount(AccountId(name), amount)
         try {
@@ -46,7 +46,7 @@ class AccountController {
         }
     }
 
-    @RequestMapping("/{name}/updateCard", method = arrayOf(RequestMethod.PUT)) @ResponseBody
+    @RequestMapping("/{name}/updateCard", method = arrayOf(RequestMethod.POST)) @ResponseBody
     fun updateCreditCardDetails(@PathVariable(value = "name", required = true) name: String): ResponseEntity<UpdateCreditCardDetails> {
         val command = UpdateCreditCardDetails(AccountId(name))
         try {
