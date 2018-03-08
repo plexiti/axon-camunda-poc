@@ -40,23 +40,17 @@ class Account(): AggregateIdentifiedBy<AccountId>() {
 
     @EventSourcingHandler
     protected fun on(event: AccountCreated) {
-        logger.debug(event.toString())
         this.id = event.accountId
-        logger.debug(this.toString())
     }
 
     @EventSourcingHandler
     protected fun on(event: AmountWithdrawn) {
-        logger.debug(event.toString())
         this.balance -= event.amount
-        logger.debug(this.toString())
     }
 
     @EventSourcingHandler
     protected fun on(event: AmountCredited) {
-        logger.debug(event.toString())
         this.balance += event.amount
-        logger.debug(this.toString())
     }
 
 }

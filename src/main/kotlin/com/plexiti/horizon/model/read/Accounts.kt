@@ -14,7 +14,6 @@ class Accounts(private val entityManager: EntityManager) {
 
     @EventHandler
     fun on(event: AccountCreated) {
-        logger.debug(event.toString())
         entityManager.persist(AccountSummary(event.accountId.id, 0F))
     }
 
@@ -26,14 +25,12 @@ class Accounts(private val entityManager: EntityManager) {
 
     @EventHandler
     protected fun on(event: AmountWithdrawn) {
-        logger.debug(event.toString())
         val accountSummary = entityManager.find(AccountSummary::class.java, event.accountId.id)
         accountSummary.balance -= event.amount
     }
 
     @EventHandler
     protected fun on(event: AmountCredited) {
-        logger.debug(event.toString())
         val accountSummary = entityManager.find(AccountSummary::class.java, event.accountId.id)
         accountSummary.balance += event.amount
     }

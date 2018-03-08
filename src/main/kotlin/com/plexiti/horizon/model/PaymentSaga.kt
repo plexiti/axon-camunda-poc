@@ -4,12 +4,17 @@ import com.plexiti.horizon.model.api.*
 import com.plexiti.integration.*
 import org.axonframework.eventhandling.saga.EndSaga
 import org.axonframework.eventhandling.saga.SagaEventHandler
+import org.axonframework.eventhandling.saga.SagaLifecycle
 import org.axonframework.eventhandling.saga.StartSaga
 import org.axonframework.spring.stereotype.Saga
+import org.slf4j.LoggerFactory
 
 @Saga
-class PaymentSaga: CamundaSaga() {
+class PaymentSaga: Flow() {
 
+    protected val logger = LoggerFactory.getLogger(PaymentSaga::class.java)
+
+    private lateinit var paymentId: PaymentId
     private lateinit var accountId: AccountId
     private var paymentAmount: Float = 0F
     private var creditAvailable = 0F
@@ -17,80 +22,81 @@ class PaymentSaga: CamundaSaga() {
     private var creditCardExpired = false
 
     @StartSaga
-    @SagaEventHandler(associationProperty = "accountId")
+    @SagaEventHandler(associationProperty = "paymentId")
     fun on(event: PaymentCreated) {
         logger.debug(event.toString())
-        businessProcessKey = event.paymentId
+        paymentId = event.paymentId
         accountId = event.accountId
         paymentAmount = event.amount
-        creditCardExpired = accountId.id == "kermit"
-        attachProcessInstance("PaymentSaga")
+        creditCardExpired = accountId.id == "kermit" // Kermit's card is always expired :-)
+        SagaLifecycle.associateWith("accountId", accountId.id)
+        correlate(event, paymentId.id)
     }
 
-    @SagaQueryFactory(responseType = AccountSummary::class)
+    @FlowQueryFactory(responseType = AccountSummary::class)
     fun checkBalance(): DocumentAccountSummary {
         val query = DocumentAccountSummary(accountId)
         logger.debug(query.toString())
         return query
     }
 
-    @SagaCommandFactory
+    @FlowCommandFactory
     fun chargeCreditCard(): ChargeCreditCard {
         val command = ChargeCreditCard(accountId, paymentAmount - amountWithdrawn, creditCardExpired)
         logger.debug(command.toString())
         return command
     }
 
-    @SagaCommandFactory
+    @FlowCommandFactory
     fun withdrawAmount(): WithdrawAmount {
         val command = WithdrawAmount(accountId, amountWithdrawn)
         logger.debug(command.toString())
         return command
     }
 
-    @SagaCommandFactory
+    @FlowCommandFactory
     fun creditAmount(): CreditAmount {
         val command = CreditAmount(accountId, amountWithdrawn)
         logger.debug(command.toString())
         return command
     }
 
-    @SagaEventFactory
+    @FlowEventFactory
     fun paymentReceived(): PaymentReceived {
-        val event = PaymentReceived(businessProcessKey, accountId, paymentAmount)
+        val event = PaymentReceived(paymentId, accountId, paymentAmount)
         logger.debug(event.toString())
         return event
     }
 
-    @SagaEventFactory
+    @FlowEventFactory
     fun paymentNotReceived(): PaymentNotReceived {
-        val event = PaymentNotReceived(businessProcessKey, accountId, paymentAmount - amountWithdrawn)
+        val event = PaymentNotReceived(paymentId, accountId, paymentAmount - amountWithdrawn)
         logger.debug(event.toString())
         return event
     }
 
-    @SagaEventFactory
+    @FlowEventFactory
     fun paymentFullyCoveredByAccount(): PaymentFullyCoveredByAccount {
-        val event = PaymentFullyCoveredByAccount(businessProcessKey, accountId, amountWithdrawn)
+        val event = PaymentFullyCoveredByAccount(paymentId, accountId, amountWithdrawn)
         logger.debug(event.toString())
         return event
     }
 
-    @SagaEventFactory
+    @FlowEventFactory
     fun paymentPartlyCoveredByAccount(): PaymentPartlyCoveredByAccount {
-        val event = PaymentPartlyCoveredByAccount(businessProcessKey, accountId, amountWithdrawn)
+        val event = PaymentPartlyCoveredByAccount(paymentId, accountId, amountWithdrawn)
         logger.debug(event.toString())
         return event
     }
 
-    @SagaEventFactory
+    @FlowEventFactory
     fun updateCreditCardReminded(): UpdateCreditCardReminded {
         val event = UpdateCreditCardReminded(accountId)
         logger.debug(event.toString())
         return event
     }
 
-    @SagaResponseHandler
+    @FlowResponseHandler
     fun handle(accountSummary: AccountSummary) {
         logger.debug(accountSummary.toString())
         creditAvailable = accountSummary.balance
@@ -101,12 +107,18 @@ class PaymentSaga: CamundaSaga() {
     fun on(event: CreditCardDetailsUpdated) {
         logger.debug(event.toString())
         creditCardExpired = false
-        messageProcessInstance(event::class.java.name)
+        correlate(event)
     }
 
     @EndSaga
-    @SagaEventHandler(associationProperty = "accountId")
+    @SagaEventHandler(associationProperty = "paymentId")
     fun on(event: PaymentReceived) {
+        logger.debug(event.toString())
+    }
+
+    @EndSaga
+    @SagaEventHandler(associationProperty = "paymentId")
+    fun on(event: PaymentNotReceived) {
         logger.debug(event.toString())
     }
 

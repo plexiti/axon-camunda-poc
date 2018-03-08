@@ -28,23 +28,17 @@ class Payment(): AggregateIdentifiedBy<PaymentId>() {
 
     @EventSourcingHandler
     protected fun on(event: PaymentCreated) {
-        logger.debug(event.toString())
         this.id = event.paymentId
-        logger.debug(this.toString())
     }
 
     @EventSourcingHandler
     protected fun on(event: PaymentNotReceived) {
-        logger.debug(event.toString())
         this.failed = true
-        logger.debug(this.toString())
     }
 
     @EventSourcingHandler
     protected fun on(event: PaymentReceived) {
-        logger.debug(event.toString())
         this.received = true
-        logger.debug(this.toString())
     }
 
 }

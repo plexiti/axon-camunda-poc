@@ -1,7 +1,9 @@
 package com.plexiti.integration;
 
 import org.axonframework.eventhandling.EventBus
+import org.axonframework.eventhandling.EventHandler
 import org.axonframework.eventhandling.GenericEventMessage
+import org.camunda.bpm.engine.RuntimeService
 import org.camunda.bpm.engine.delegate.BpmnError
 import org.camunda.bpm.engine.delegate.DelegateExecution
 import org.camunda.bpm.engine.delegate.JavaDelegate
@@ -23,9 +25,12 @@ class CommandBehaviour: AbstractBpmnActivityBehavior() {
     @Autowired
     private lateinit var eventBus: EventBus
 
+    @Autowired
+    private lateinit var runtimeService: RuntimeService
+
     override fun execute(execution: ActivityExecution) {
         val messageName = property("command", execution.bpmnModelElementInstance)!!
-        val eventMessage = GenericEventMessage(CommandIssued(execution.processInstanceId, execution.id, messageName))
+        val eventMessage = GenericEventMessage(CommandIssued(execution.processBusinessKey, execution.id, messageName))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
@@ -37,6 +42,18 @@ class CommandBehaviour: AbstractBpmnActivityBehavior() {
             val bpmnError = if (signalData !is String) BpmnError(signalName) else BpmnError(signalName, signalData)
             propagateBpmnError(bpmnError, execution)
         }
+    }
+
+    @EventHandler
+    fun on(event: CommandSucceeded) {
+        logger.debug(event.toString())
+        runtimeService.signal(event.executionId, null, null, event.variables)
+    }
+
+    @EventHandler
+    fun on(event: CommandFailed) {
+        logger.debug(event.toString())
+        runtimeService.signal(event.executionId, event.errorCode, event.errorMessage, null)
     }
 
 }
@@ -49,11 +66,20 @@ class EventBehaviour: JavaDelegate {
     @Autowired
     private lateinit var eventBus: EventBus
 
+    @Autowired
+    private lateinit var runtimeService: RuntimeService
+
     override fun execute(execution: DelegateExecution) {
         val messageName = property("event", execution.bpmnModelElementInstance)!!
-        val eventMessage = GenericEventMessage(EventRaised(execution.processInstanceId, execution.id, messageName))
+        val eventMessage = GenericEventMessage(EventRaised(execution.processBusinessKey, execution.id, messageName))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
+    }
+
+    @EventHandler
+    fun on(event: EventReceived) {
+        logger.debug(event.toString())
+        runtimeService.createMessageCorrelation(event.event).processInstanceBusinessKey(event.correlationKey).correlate()
     }
 
 }
@@ -66,9 +92,12 @@ class QueryBehaviour: AbstractBpmnActivityBehavior() {
     @Autowired
     private lateinit var eventBus: EventBus
 
+    @Autowired
+    private lateinit var runtimeService: RuntimeService
+
     override fun execute(execution: ActivityExecution) {
         val messageName = property("query", execution.bpmnModelElementInstance)!!
-        val eventMessage = GenericEventMessage(QueryRequested(execution.processInstanceId, execution.id, messageName))
+        val eventMessage = GenericEventMessage(QueryRequested(execution.processBusinessKey, execution.id, messageName))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
@@ -82,11 +111,13 @@ class QueryBehaviour: AbstractBpmnActivityBehavior() {
         }
     }
 
-}
+    @EventHandler
+    fun on(event: QueryResponded) {
+        logger.debug(event.toString())
+        runtimeService.signal(event.executionId, null, null, event.variables)
+    }
 
-data class CommandIssued(val processInstanceId: String, val executionId: String, val messageName: String)
-data class EventRaised(val processInstanceId: String, val executionId: String, val messageName: String)
-data class QueryRequested(val processInstanceId: String, val executionId: String, val messageName: String)
+}
 
 internal fun property(property: String, model: BpmnModelElementInstance): String? {
     return model.domElement.childElements.find { it.localName == "extensionElements" }
