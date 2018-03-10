@@ -45,18 +45,22 @@ abstract class AxonFlowIntegration {
     @Autowired @Transient
     private lateinit var responseHandler: ResponseHandler
 
+    /* Main association id with which saga is started */
     private lateinit var sagaAssociationId: String
 
-    // TODO efficiency: instantiate just once
+    private var openCommands = mutableMapOf<String, String>()
+
     @SagaEventHandler(associationProperty = "sagaAssociationId")
     internal fun on(event: FlowCommandIssued) {
-
-        // TODO resilience: shutdown safety
 
         commandBus.dispatch(GenericCommandMessage(messageFactory.create(event.command, this)), object: CommandCallback<Any, Any> {
 
             override fun onSuccess(commandMessage: CommandMessage<out Any>?, result: Any?) {
-                eventBus.publish(GenericEventMessage(FlowCommandSucceeded(event.flowAssociationId, bindValuesToFlow())))
+                if (event.event != null) {
+                    openCommands = openCommands.apply { put(event.event, event.flowAssociationId) }
+                } else {
+                    eventBus.publish(GenericEventMessage(FlowCommandSucceeded(event.flowAssociationId)))
+                }
             }
 
             override fun onFailure(commandMessage: CommandMessage<out Any>?, cause: Throwable) {
@@ -80,7 +84,7 @@ abstract class AxonFlowIntegration {
         val query = messageFactory.create(event.query, this)
         val queryResponseClass = responseHandler.responseClass(query::class, this)
 
-        // TODO resilience: asynchrony, shutdown safety
+        // TODO resilience: asynchrony?
 
         responseHandler.handle(queryBus.query(GenericQueryMessage(query, queryResponseClass.java)).get(), this)
         eventBus.publish(GenericEventMessage(FlowQueryResponded(event.flowAssociationId, bindValuesToFlow())))
@@ -94,18 +98,27 @@ abstract class AxonFlowIntegration {
             SagaLifecycle.associateWith("sagaAssociationId", sagaAssociationId)
         }
 
-        eventBus.publish(GenericEventMessage(FlowEventReceived(this.sagaAssociationId, event::class.java.canonicalName), bindValuesToFlow()))
+        val eventName = event::class.qualifiedName!!
+
+        val eventMessage: Any = if (openCommands.contains(eventName)) {
+            val flowAssociationId = openCommands.remove(eventName)!!
+            FlowCommandSucceeded(flowAssociationId, bindValuesToFlow())
+        } else {
+            FlowEventReceived(this.sagaAssociationId, eventName, bindValuesToFlow())
+        }
+
+        eventBus.publish(GenericEventMessage(eventMessage))
 
     }
 
     protected abstract fun bindValuesToFlow(): Map<String, Any>
 }
 
-data class FlowCommandIssued(val sagaAssociationId: String, val flowAssociationId: String, val command: String)
-data class FlowCommandSucceeded(val flowAssociationId: String, val variables: Map<String, Any?>)
+data class FlowCommandIssued(val sagaAssociationId: String, val flowAssociationId: String, val command: String, val event: String?)
+data class FlowCommandSucceeded(val flowAssociationId: String, val variables: Map<String, Any?>? = null)
 data class FlowCommandFailed(val flowAssociationId: String, val errorCode: String, val errorMessage: String?)
 data class FlowEventRaised(val sagaAssociationId: String, val flowAssociationId: String, val event: String)
-data class FlowEventReceived(val sagaAssociationId: String, val event: String)
+data class FlowEventReceived(val sagaAssociationId: String, val event: String, val variables: Map<String, Any?>? = null)
 data class FlowQueryRequested(val sagaAssociationId: String, val flowAssociationId: String, val query: String)
 data class FlowQueryResponded(val flowAssociationId: String, val variables: Map<String, Any?>)
 

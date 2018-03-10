@@ -10,6 +10,7 @@ import org.axonframework.spring.stereotype.Saga
 import org.slf4j.LoggerFactory
 
 // TODO inheritance: replace abstract class with something better
+// TODO api: consider to get rid of explicit correlation to flow
 
 @Saga
 class PaymentSaga: Flow() {
@@ -35,6 +36,13 @@ class PaymentSaga: Flow() {
         correlateEventToFlow(event, paymentId.id)
     }
 
+    @SagaEventHandler(associationProperty = "referenceId", keyName = "paymentId")
+    fun on (event: AmountWithdrawn) {
+        logger.debug(event.toString())
+        amountWithdrawn = event.amount
+        correlateEventToFlow(event)
+    }
+
     @SagaEventHandler(associationProperty = "accountId")
     fun on(event: CreditCardDetailsUpdated) {
         logger.debug(event.toString())
@@ -56,8 +64,8 @@ class PaymentSaga: Flow() {
 
     override fun bindValuesToFlow(): Map<String, Any> {
         return mapOf (
-                "creditAvailable" to (creditAvailable > 0F),
-                "creditFullyCovering" to (creditAvailable >= paymentAmount)
+            "creditAvailable" to (creditAvailable > 0F),
+            "creditFullyCovering" to (amountWithdrawn.equals(paymentAmount))
         )
     }
 
@@ -75,7 +83,6 @@ class PaymentSaga: Flow() {
     fun handle(accountSummary: AccountSummary) {
         logger.debug(accountSummary.toString())
         creditAvailable = accountSummary.balance
-        amountWithdrawn = if (creditAvailable > paymentAmount) paymentAmount else creditAvailable
     }
 
     @FlowCommandFactory
@@ -87,14 +94,14 @@ class PaymentSaga: Flow() {
 
     @FlowCommandFactory
     fun withdrawAmount(): WithdrawAmount {
-        val command = WithdrawAmount(accountId, amountWithdrawn)
+        val command = WithdrawAmount(accountId, paymentId.id, paymentAmount)
         logger.debug(command.toString())
         return command
     }
 
     @FlowCommandFactory
     fun creditAmount(): CreditAmount {
-        val command = CreditAmount(accountId, amountWithdrawn)
+        val command = CreditAmount(accountId, paymentId.id, amountWithdrawn)
         logger.debug(command.toString())
         return command
     }

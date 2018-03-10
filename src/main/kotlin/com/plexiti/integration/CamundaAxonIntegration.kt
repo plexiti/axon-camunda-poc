@@ -33,7 +33,8 @@ class CommandBehaviour: AbstractBpmnActivityBehavior() {
 
     override fun execute(execution: ActivityExecution) {
         val messageName = property("command", execution.bpmnModelElementInstance)!!
-        val eventMessage = GenericEventMessage(FlowCommandIssued(execution.processBusinessKey, execution.id, messageName))
+        val eventName = property("event", execution.bpmnModelElementInstance)
+        val eventMessage = GenericEventMessage(FlowCommandIssued(execution.processBusinessKey, execution.id, messageName, eventName))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
@@ -82,7 +83,11 @@ class EventBehaviour: JavaDelegate {
     @EventHandler
     internal fun on(event: FlowEventReceived) {
         logger.debug(event.toString())
-        runtimeService.createMessageCorrelation(event.event).processInstanceBusinessKey(event.sagaAssociationId).correlate()
+        runtimeService
+            .createMessageCorrelation(event.event)
+            .processInstanceBusinessKey(event.sagaAssociationId)
+            .setVariables(event.variables)
+            .correlate()
     }
 
 }
@@ -123,8 +128,10 @@ class QueryBehaviour: AbstractBpmnActivityBehavior() {
 }
 
 internal fun property(property: String, model: BpmnModelElementInstance): String? {
-    return model.domElement.childElements.find { it.localName == "extensionElements" }
+    val property = model.domElement.childElements.find { it.localName == "extensionElements" }
             ?.childElements?.find { it.localName == "properties" }
             ?.childElements?.find { it.localName == "property" && it.hasAttribute("name") && it.getAttribute("name") == property }
             ?.getAttribute("value")
+            ?.trim()
+    return if (property == null || property.isEmpty()) null else property
 }

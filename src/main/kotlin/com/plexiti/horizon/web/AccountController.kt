@@ -37,7 +37,7 @@ class AccountController {
 
     @RequestMapping("/{name}/credit", method = arrayOf(RequestMethod.POST)) @ResponseBody
     fun credit(@PathVariable(value = "name", required = true) name: String, @RequestParam(value = "amount", required = true) amount: Float): ResponseEntity<CreditAmount> {
-        val command = CreditAmount(AccountId(name), amount)
+        val command = CreditAmount(AccountId(name), "gift-certificate-$name", amount)
         try {
             commandGateway.send<CreditAmount>(command)
             return ResponseEntity(HttpStatus.OK)

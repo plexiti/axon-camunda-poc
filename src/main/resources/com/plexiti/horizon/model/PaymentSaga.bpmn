@@ -24,6 +24,7 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.WithdrawAmount" />
+          <camunda:property name="event" value="com.plexiti.horizon.model.api.AmountWithdrawn" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_06hj8g5</bpmn:incoming>

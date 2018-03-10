@@ -29,13 +29,13 @@ class Account(): AggregateIdentifiedBy<AccountId>() {
     fun handle(command: WithdrawAmount) {
         logger.debug(command.toString())
         val debit = if (command.amount > balance) balance else command.amount
-        apply(AmountWithdrawn(command.accountId, debit))
+        apply(AmountWithdrawn(command.accountId, command.referenceId, debit))
     }
 
     @CommandHandler
     fun handle(command: CreditAmount) {
         logger.debug(command.toString())
-        apply(AmountCredited(command.accountId, command.amount))
+        apply(AmountCredited(command.accountId, command.referenceId, command.amount))
     }
 
     @EventSourcingHandler

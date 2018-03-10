@@ -28,6 +28,18 @@
                 "constraints": {
                     "notEmpty": true
                 }
+            },
+            {
+                "label": "Command completion event",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "event"
+                },
+                "constraints": {
+                    "notEmpty": false
+                }
             }
         ],
         "entriesVisible": {

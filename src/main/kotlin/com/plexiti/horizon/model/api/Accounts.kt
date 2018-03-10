@@ -9,11 +9,11 @@ class AccountId(id: String): Identifier<String>(id)
 data class CreateAccount(val name: String)
 data class AccountCreated(@TargetAggregateIdentifier val accountId: AccountId)
 
-data class WithdrawAmount(@TargetAggregateIdentifier val accountId: AccountId, val amount: Float)
-data class AmountWithdrawn(@TargetAggregateIdentifier val accountId: AccountId, val amount: Float)
+data class WithdrawAmount(@TargetAggregateIdentifier val accountId: AccountId, val referenceId: String, val amount: Float)
+data class AmountWithdrawn(@TargetAggregateIdentifier val accountId: AccountId, val referenceId: String, val amount: Float)
 
-data class CreditAmount(@TargetAggregateIdentifier val accountId: AccountId, val amount: Float)
-data class AmountCredited(@TargetAggregateIdentifier val accountId: AccountId, val amount: Float)
+data class CreditAmount(@TargetAggregateIdentifier val accountId: AccountId, val referenceId: String, val amount: Float)
+data class AmountCredited(@TargetAggregateIdentifier val accountId: AccountId, val referenceId: String, val amount: Float)
 
 data class ChargeCreditCard(val accountId: AccountId, val amount: Float, val expired: Boolean)
 data class CreditCardCharged(val accountId: AccountId, val amount: Float)
