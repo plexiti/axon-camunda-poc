@@ -1,10 +1,9 @@
 [
     {
-        "name": "Issue a command",
-        "id": "com.plexiti.commons.application.Command",
+        "name": "Issue command, wait for completion",
+        "id": "com.plexiti.commons.application.CommandAndCompletion",
         "appliesTo": [
-            "bpmn:ServiceTask",
-            "bpmn:SendTask"
+            "bpmn:ServiceTask"
         ],
         "properties": [
             {
@@ -18,7 +17,42 @@
                 }
             },
             {
-                "label": "Command",
+                "label": "Issue command",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "command"
+                },
+                "constraints": {
+                    "notEmpty": true
+                }
+            }
+        ],
+        "entriesVisible": {
+            "_all": true,
+            "camunda:modelerTemplate": true
+        }
+    },
+    {
+        "name": "Issue command, wait for event",
+        "id": "com.plexiti.commons.application.CommandAndEvent",
+        "appliesTo": [
+            "bpmn:ServiceTask"
+        ],
+        "properties": [
+            {
+                "label": "Bean Binding",
+                "type": "Hidden",
+                "value": "${command}",
+                "editable": false,
+                "binding": {
+                    "type": "property",
+                    "name": "camunda:delegateExpression"
+                }
+            },
+            {
+                "label": "Issue command",
                 "description": "Enter full class name or explicit name",
                 "type": "String",
                 "binding": {
@@ -30,7 +64,7 @@
                 }
             },
             {
-                "label": "Command completion event",
+                "label": "Wait for event",
                 "description": "Enter full class name or explicit name",
                 "type": "String",
                 "binding": {
@@ -38,7 +72,7 @@
                     "name": "event"
                 },
                 "constraints": {
-                    "notEmpty": false
+                    "notEmpty": true
                 }
             }
         ],
@@ -48,7 +82,7 @@
         }
     },
     {
-        "name": "Raise an event",
+        "name": "Raise event",
         "id": "com.plexiti.commons.application.RaisedEvent",
         "isDefault": false,
         "appliesTo": [
@@ -68,7 +102,7 @@
                 }
             },
             {
-                "label": "Event",
+                "label": "Raise event",
                 "description": "Enter full class name or explicit name",
                 "type": "String",
                 "binding": {
@@ -85,7 +119,7 @@
         }
     },
     {
-        "name": "Query for info",
+        "name": "Issue query, wait for response",
         "id": "com.plexiti.commons.application.Query",
         "isDefault": false,
         "appliesTo": [
@@ -103,7 +137,7 @@
                 }
             },
             {
-                "label": "Query",
+                "label": "Issue query",
                 "description": "Enter full class name or explicit name",
                 "type": "String",
                 "binding": {
@@ -120,7 +154,7 @@
         }
     },
     {
-        "name": "Listen to event",
+        "name": "React on event",
         "id": "com.plexiti.commons.application.EventListener",
         "isDefault": false,
         "appliesTo": [
@@ -130,7 +164,7 @@
         ],
         "properties": [
             {
-                "label": "Event",
+                "label": "React on event",
                 "description": "Enter full class name or explicit name",
                 "type": "String",
                 "binding": {

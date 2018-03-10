@@ -20,7 +20,7 @@
     <bpmn:sequenceFlow id="SequenceFlow_06hj8g5" name="yes" sourceRef="ExclusiveGateway_032y4gi" targetRef="Task_0yyle2z">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{creditAvailable}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:serviceTask id="Task_0yyle2z" name="Withdraw charge from cust. account" camunda:modelerTemplate="com.plexiti.commons.application.Command" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
+    <bpmn:serviceTask id="Task_0yyle2z" name="Withdraw charge from cust. account" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.WithdrawAmount" />
@@ -50,7 +50,7 @@
       <bpmn:errorEventDefinition />
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_17vx50e" sourceRef="BoundaryEvent_0xawlp8" targetRef="Task_1gui4vf" />
-    <bpmn:serviceTask id="Task_0vr8mvr" name="Charge credit card" camunda:modelerTemplate="com.plexiti.commons.application.Command" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${command}">
+    <bpmn:serviceTask id="Task_0vr8mvr" name="Charge credit card" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndCompletion" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.ChargeCreditCard" />
@@ -89,7 +89,7 @@
     <bpmn:boundaryEvent id="BoundaryEvent_1r1o6id" name="(in case) &#10;Payment to be compensated" attachedToRef="Task_0yyle2z">
       <bpmn:compensateEventDefinition />
     </bpmn:boundaryEvent>
-    <bpmn:serviceTask id="Task_1r4av6f" name="Credit charge &#10;back to account" camunda:modelerTemplate="com.plexiti.commons.application.Command" isForCompensation="true" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${command}">
+    <bpmn:serviceTask id="Task_1r4av6f" name="Credit charge &#10;back to account" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndCompletion" isForCompensation="true" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.CreditAmount" />

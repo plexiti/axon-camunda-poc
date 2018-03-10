@@ -65,7 +65,7 @@ class PaymentSaga: Flow() {
     override fun bindValuesToFlow(): Map<String, Any> {
         return mapOf (
             "creditAvailable" to (creditAvailable > 0F),
-            "creditFullyCovering" to (amountWithdrawn.equals(paymentAmount))
+            "creditFullyCovering" to (amountWithdrawn == paymentAmount)
         )
     }
 
