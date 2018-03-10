@@ -9,6 +9,8 @@ import org.axonframework.eventhandling.saga.StartSaga
 import org.axonframework.spring.stereotype.Saga
 import org.slf4j.LoggerFactory
 
+// TODO alternatives: implement an Axon Saga Manager
+// TODO inheritance: replace abstract class with something better
 @Saga
 class PaymentSaga: Flow() {
 
@@ -30,14 +32,52 @@ class PaymentSaga: Flow() {
         paymentAmount = event.amount
         creditCardExpired = accountId.id == "kermit" // Kermit's card is always expired :-)
         SagaLifecycle.associateWith("accountId", accountId.id)
-        correlate(event, paymentId.id)
+        correlateEventToFlow(event, paymentId.id)
     }
+
+    @SagaEventHandler(associationProperty = "accountId")
+    fun on(event: CreditCardDetailsUpdated) {
+        logger.debug(event.toString())
+        creditCardExpired = false
+        correlateEventToFlow(event)
+    }
+
+    @EndSaga
+    @SagaEventHandler(associationProperty = "paymentId")
+    fun on(event: PaymentReceived) {
+        logger.debug(event.toString())
+    }
+
+    @EndSaga
+    @SagaEventHandler(associationProperty = "paymentId")
+    fun on(event: PaymentNotReceived) {
+        logger.debug(event.toString())
+    }
+
+    // TODO alternatives: e.g. mirror all member properties
+
+    override fun bindValuesToFlow(): Map<String, Any> {
+        return mapOf (
+                "creditAvailable" to (creditAvailable > 0F),
+                "creditFullyCovering" to (creditAvailable >= paymentAmount)
+        )
+    }
+
+    // Construct Messages triggered by Flow Engine
+    // TODO alternatives: e.g. message class constructors
 
     @FlowQueryFactory(responseType = AccountSummary::class)
     fun checkBalance(): DocumentAccountSummary {
         val query = DocumentAccountSummary(accountId)
         logger.debug(query.toString())
         return query
+    }
+
+    @FlowResponseHandler
+    fun handle(accountSummary: AccountSummary) {
+        logger.debug(accountSummary.toString())
+        creditAvailable = accountSummary.balance
+        amountWithdrawn = if (creditAvailable > paymentAmount) paymentAmount else creditAvailable
     }
 
     @FlowCommandFactory
@@ -94,39 +134,6 @@ class PaymentSaga: Flow() {
         val event = UpdateCreditCardReminded(accountId)
         logger.debug(event.toString())
         return event
-    }
-
-    @FlowResponseHandler
-    fun handle(accountSummary: AccountSummary) {
-        logger.debug(accountSummary.toString())
-        creditAvailable = accountSummary.balance
-        amountWithdrawn = if (creditAvailable > paymentAmount) paymentAmount else creditAvailable
-    }
-
-    @SagaEventHandler(associationProperty = "accountId")
-    fun on(event: CreditCardDetailsUpdated) {
-        logger.debug(event.toString())
-        creditCardExpired = false
-        correlate(event)
-    }
-
-    @EndSaga
-    @SagaEventHandler(associationProperty = "paymentId")
-    fun on(event: PaymentReceived) {
-        logger.debug(event.toString())
-    }
-
-    @EndSaga
-    @SagaEventHandler(associationProperty = "paymentId")
-    fun on(event: PaymentNotReceived) {
-        logger.debug(event.toString())
-    }
-
-    override fun variables(): Map<String, Any> {
-        return mapOf (
-                "creditAvailable" to (creditAvailable > 0F),
-                "creditFullyCovering" to (creditAvailable >= paymentAmount)
-        )
     }
 
 }

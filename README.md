@@ -77,11 +77,11 @@ https://github.com/plexiti/axon-camunda-poc/blob/master/src/main/kotlin/com/plex
 
 - This is the basic code for the Axon integration with flow engines - independent of Camunda's
 
-https://github.com/plexiti/axon-camunda-poc/blob/master/src/main/kotlin/com/plexiti/integration/FlowsIntegration.kt
+https://github.com/plexiti/axon-camunda-poc/blob/master/src/main/kotlin/com/plexiti/integration/AxonFlowIntegration.kt
 
 - This is the Camunda specific implementation of the integration:
 
-https://github.com/plexiti/axon-camunda-poc/blob/master/src/main/kotlin/com/plexiti/integration/CamundaFlowsIntegration.kt
+https://github.com/plexiti/axon-camunda-poc/blob/master/src/main/kotlin/com/plexiti/integration/CamundaAxonIntegration.kt
 
 Enjoy! And don't forget to give me feedback: martin.schimak@plexiti.com
 

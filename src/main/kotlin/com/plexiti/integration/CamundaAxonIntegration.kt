@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
+// TODO support non spring environments
 @Component("command")
 class CommandBehaviour: AbstractBpmnActivityBehavior() {
 
@@ -30,7 +31,7 @@ class CommandBehaviour: AbstractBpmnActivityBehavior() {
 
     override fun execute(execution: ActivityExecution) {
         val messageName = property("command", execution.bpmnModelElementInstance)!!
-        val eventMessage = GenericEventMessage(CommandIssued(execution.processBusinessKey, execution.id, messageName))
+        val eventMessage = GenericEventMessage(FlowCommandIssued(execution.processBusinessKey, execution.id, messageName))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
@@ -45,15 +46,15 @@ class CommandBehaviour: AbstractBpmnActivityBehavior() {
     }
 
     @EventHandler
-    fun on(event: CommandSucceeded) {
+    internal fun on(event: FlowCommandSucceeded) {
         logger.debug(event.toString())
-        runtimeService.signal(event.executionId, null, null, event.variables)
+        runtimeService.signal(event.flowAssociationId, null, null, event.variables)
     }
 
     @EventHandler
-    fun on(event: CommandFailed) {
+    internal fun on(event: FlowCommandFailed) {
         logger.debug(event.toString())
-        runtimeService.signal(event.executionId, event.errorCode, event.errorMessage, null)
+        runtimeService.signal(event.flowAssociationId, event.errorCode, event.errorMessage, null)
     }
 
 }
@@ -71,15 +72,15 @@ class EventBehaviour: JavaDelegate {
 
     override fun execute(execution: DelegateExecution) {
         val messageName = property("event", execution.bpmnModelElementInstance)!!
-        val eventMessage = GenericEventMessage(EventRaised(execution.processBusinessKey, execution.id, messageName))
+        val eventMessage = GenericEventMessage(FlowEventRaised(execution.processBusinessKey, execution.id, messageName))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
 
     @EventHandler
-    fun on(event: EventReceived) {
+    internal fun on(event: FlowEventReceived) {
         logger.debug(event.toString())
-        runtimeService.createMessageCorrelation(event.event).processInstanceBusinessKey(event.correlationKey).correlate()
+        runtimeService.createMessageCorrelation(event.event).processInstanceBusinessKey(event.sagaAssociationId).correlate()
     }
 
 }
@@ -97,7 +98,7 @@ class QueryBehaviour: AbstractBpmnActivityBehavior() {
 
     override fun execute(execution: ActivityExecution) {
         val messageName = property("query", execution.bpmnModelElementInstance)!!
-        val eventMessage = GenericEventMessage(QueryRequested(execution.processBusinessKey, execution.id, messageName))
+        val eventMessage = GenericEventMessage(FlowQueryRequested(execution.processBusinessKey, execution.id, messageName))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
@@ -112,9 +113,9 @@ class QueryBehaviour: AbstractBpmnActivityBehavior() {
     }
 
     @EventHandler
-    fun on(event: QueryResponded) {
+    internal fun on(event: FlowQueryResponded) {
         logger.debug(event.toString())
-        runtimeService.signal(event.executionId, null, null, event.variables)
+        runtimeService.signal(event.flowAssociationId, null, null, event.variables)
     }
 
 }
