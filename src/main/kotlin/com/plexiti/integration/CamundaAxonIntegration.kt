@@ -17,7 +17,9 @@ import org.springframework.stereotype.Component
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
+
 // TODO support non spring environments
+
 @Component("command")
 class CommandBehaviour: AbstractBpmnActivityBehavior() {
 

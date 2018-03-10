@@ -9,8 +9,8 @@ import org.axonframework.eventhandling.saga.StartSaga
 import org.axonframework.spring.stereotype.Saga
 import org.slf4j.LoggerFactory
 
-// TODO alternatives: implement an Axon Saga Manager
 // TODO inheritance: replace abstract class with something better
+
 @Saga
 class PaymentSaga: Flow() {
 

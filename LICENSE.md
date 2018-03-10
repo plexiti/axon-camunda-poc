@@ -1,0 +1,1 @@
+&copy; plexit GmbH 2018 - All rights reserved.

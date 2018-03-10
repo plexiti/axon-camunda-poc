@@ -5,7 +5,6 @@ import kotlin.reflect.KClass
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
-
 abstract class Flow: AxonFlowIntegration()
 
 @Retention(AnnotationRetention.RUNTIME)

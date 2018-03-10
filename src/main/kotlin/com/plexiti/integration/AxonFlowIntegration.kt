@@ -20,7 +20,14 @@ import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.jvmErasure
 
 // TODO support explicit message names
+// TODO alternatives: implement an Axon Saga Manager
+// TODO inheritance: replace abstract class with something better
+// One could e.g. hook in the saga event handlers into every saga
+// annotated with @Flow
 
+/**
+ * @author Martin Schimak <martin.schimak@plexiti.com>
+ */
 abstract class AxonFlowIntegration {
 
     @Autowired @Transient
