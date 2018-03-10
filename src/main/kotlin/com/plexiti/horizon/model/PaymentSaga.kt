@@ -45,13 +45,11 @@ class PaymentSaga: Flow() {
     @EndSaga
     @SagaEventHandler(associationProperty = "paymentId")
     fun on(event: PaymentReceived) {
-        logger.debug(event.toString())
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = "paymentId")
     fun on(event: PaymentNotReceived) {
-        logger.debug(event.toString())
     }
 
     // TODO alternatives: e.g. mirror all member properties
