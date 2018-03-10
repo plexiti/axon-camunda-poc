@@ -35,7 +35,7 @@
         }
     },
     {
-        "name": "Issue command, wait for event",
+        "name": "Issue command, handle event",
         "id": "com.plexiti.commons.application.CommandAndEvent",
         "appliesTo": [
             "bpmn:ServiceTask"
@@ -64,15 +64,27 @@
                 }
             },
             {
-                "label": "Wait for event",
+                "label": "Handle success event",
                 "description": "Enter full class name or explicit name",
                 "type": "String",
                 "binding": {
                     "type": "camunda:property",
-                    "name": "event"
+                    "name": "success"
                 },
                 "constraints": {
                     "notEmpty": true
+                }
+            },
+            {
+                "label": "Handle failure event",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "failure"
+                },
+                "constraints": {
+                    "notEmpty": false
                 }
             }
         ],

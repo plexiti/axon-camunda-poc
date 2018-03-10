@@ -32,9 +32,10 @@ class CommandBehaviour: AbstractBpmnActivityBehavior() {
     private lateinit var runtimeService: RuntimeService
 
     override fun execute(execution: ActivityExecution) {
-        val messageName = property("command", execution.bpmnModelElementInstance)!!
-        val eventName = property("event", execution.bpmnModelElementInstance)
-        val eventMessage = GenericEventMessage(FlowCommandIssued(execution.processBusinessKey, execution.id, messageName, eventName))
+        val command = property("command", execution.bpmnModelElementInstance)!!
+        val success = property("success", execution.bpmnModelElementInstance)
+        val failure = property("failure", execution.bpmnModelElementInstance)
+        val eventMessage = GenericEventMessage(FlowCommandIssued(execution.processBusinessKey, execution.id, command, success, failure))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }

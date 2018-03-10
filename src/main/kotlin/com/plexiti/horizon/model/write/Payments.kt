@@ -23,7 +23,7 @@ class Payment(): AggregateIdentifiedBy<PaymentId>() {
     @CommandHandler
     constructor(command: RetrievePayment): this() {
         logger.debug(command.toString())
-        apply(PaymentCreated(PaymentId(UUID.randomUUID().toString()), command.accountId, command.amount))
+        apply(PaymentCreated(PaymentId(UUID.randomUUID().toString()), command.accountId, command.orderId, command.amount))
     }
 
     @EventSourcingHandler

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.11.3">
-  <bpmn:process id="PaymentSaga" name="Payment" isExecutable="true">
+  <bpmn:process id="Payment" name="Payment" isExecutable="true">
     <bpmn:sequenceFlow id="SequenceFlow_1q648th" sourceRef="StartEvent_1" targetRef="Task_0cvmscw" />
     <bpmn:serviceTask id="Task_0cvmscw" name="Check customer account balance" camunda:modelerTemplate="com.plexiti.commons.application.Query" camunda:asyncBefore="true" camunda:delegateExpression="${query}">
       <bpmn:extensionElements>
@@ -24,7 +24,7 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.WithdrawAmount" />
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.AmountWithdrawn" />
+          <camunda:property name="success" value="com.plexiti.horizon.model.api.AmountWithdrawn" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_06hj8g5</bpmn:incoming>
@@ -179,7 +179,7 @@
   <bpmn:message id="Message_1t4sa6a" name="com.plexiti.horizon.model.api.CreditCardDetailsUpdated" />
   <bpmn:message id="Message_1vckxtw" name="com.plexiti.horizon.model.api.PaymentCreated" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="PaymentSaga">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Payment">
       <bpmndi:BPMNEdge id="SequenceFlow_1q648th_di" bpmnElement="SequenceFlow_1q648th">
         <di:waypoint xsi:type="dc:Point" x="144" y="120" />
         <di:waypoint xsi:type="dc:Point" x="184" y="120" />
@@ -289,7 +289,7 @@
         <di:waypoint xsi:type="dc:Point" x="950" y="352" />
         <di:waypoint xsi:type="dc:Point" x="982" y="352" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="968.0000000000001" y="281" width="33" height="25" />
+          <dc:Bounds x="968" y="281.0000000000002" width="33" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1yc74ur_di" bpmnElement="SequenceFlow_1yc74ur">
@@ -298,7 +298,7 @@
         <di:waypoint xsi:type="dc:Point" x="802" y="304" />
         <di:waypoint xsi:type="dc:Point" x="802" y="160" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="814" y="283" width="90" height="12" />
+          <dc:Bounds x="813.5" y="283" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0ulp52k_di" bpmnElement="SequenceFlow_0ulp52k">

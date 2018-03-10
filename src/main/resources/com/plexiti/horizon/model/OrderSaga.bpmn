@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.11.3">
+  <bpmn:process id="Order" name="Order" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1k91tc0" name="Order placed" camunda:modelerTemplate="com.plexiti.commons.application.EventListener" camunda:asyncBefore="true">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="event" value="com.plexiti.horizon.model.api.OrderPlaced" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>SequenceFlow_1mcy2sg</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_1haszv5" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1mcy2sg" sourceRef="StartEvent_1k91tc0" targetRef="Task_16lnb17" />
+    <bpmn:serviceTask id="Task_16lnb17" name="Retrieve payment" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.RetrievePayment" />
+          <camunda:property name="success" value="com.plexiti.horizon.model.api.PaymentReceived" />
+          <camunda:property name="failure" value="com.plexiti.horizon.model.api.PaymentNotReceived" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1mcy2sg</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1ve5fmw</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="BoundaryEvent_0gu1wth" name="Payment not received" attachedToRef="Task_16lnb17">
+      <bpmn:outgoing>SequenceFlow_0tuuf3a</bpmn:outgoing>
+      <bpmn:errorEventDefinition />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0tuuf3a" sourceRef="BoundaryEvent_0gu1wth" targetRef="EndEvent_0yv9t84" />
+    <bpmn:sequenceFlow id="SequenceFlow_1ve5fmw" sourceRef="Task_16lnb17" targetRef="Task_1myxyur" />
+    <bpmn:sequenceFlow id="SequenceFlow_0s1tyqq" sourceRef="Task_1myxyur" targetRef="ManualTask_09na2ud" />
+    <bpmn:manualTask id="Task_1myxyur" name="Fetch goods from inventory" camunda:asyncBefore="true">
+      <bpmn:incoming>SequenceFlow_1ve5fmw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0s1tyqq</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:manualTask id="ManualTask_09na2ud" name="Ship goods &#10;to customer" camunda:asyncBefore="true">
+      <bpmn:incoming>SequenceFlow_0s1tyqq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0bg999w</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0bg999w" sourceRef="ManualTask_09na2ud" targetRef="EndEvent_0zr2b6n" />
+    <bpmn:endEvent id="EndEvent_0yv9t84" name="Order not fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEvent">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="event" value="com.plexiti.horizon.model.api.OrderNotFulfilled" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0tuuf3a</bpmn:incoming>
+      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_0zr2b6n" name="Order fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEvent" camunda:delegateExpression="${event}">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="event" value="com.plexiti.horizon.model.api.OrderFulfilled" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0bg999w</bpmn:incoming>
+      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:message id="Message_1haszv5" name="com.plexiti.horizon.model.api.OrderPlaced" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Order">
+      <bpmndi:BPMNShape id="StartEvent_0ng6i06_di" bpmnElement="StartEvent_1k91tc0">
+        <dc:Bounds x="163" y="139" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="150" y="178" width="64" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1mcy2sg_di" bpmnElement="SequenceFlow_1mcy2sg">
+        <di:waypoint xsi:type="dc:Point" x="199" y="157" />
+        <di:waypoint xsi:type="dc:Point" x="241" y="157" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="220" y="135.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0jffi63_di" bpmnElement="Task_16lnb17">
+        <dc:Bounds x="241" y="117" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BoundaryEvent_061hp38_di" bpmnElement="BoundaryEvent_0gu1wth">
+        <dc:Bounds x="284" y="179" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="320" y="202" width="62" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0tuuf3a_di" bpmnElement="SequenceFlow_0tuuf3a">
+        <di:waypoint xsi:type="dc:Point" x="302" y="215" />
+        <di:waypoint xsi:type="dc:Point" x="302" y="250" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="317" y="226" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1ve5fmw_di" bpmnElement="SequenceFlow_1ve5fmw">
+        <di:waypoint xsi:type="dc:Point" x="341" y="157" />
+        <di:waypoint xsi:type="dc:Point" x="385" y="157" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="363" y="135.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0s1tyqq_di" bpmnElement="SequenceFlow_0s1tyqq">
+        <di:waypoint xsi:type="dc:Point" x="485" y="157" />
+        <di:waypoint xsi:type="dc:Point" x="527" y="157" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="506" y="135.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ManualTask_09221x4_di" bpmnElement="Task_1myxyur">
+        <dc:Bounds x="385" y="117" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ManualTask_09na2ud_di" bpmnElement="ManualTask_09na2ud">
+        <dc:Bounds x="527" y="117" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0bg999w_di" bpmnElement="SequenceFlow_0bg999w">
+        <di:waypoint xsi:type="dc:Point" x="627" y="157" />
+        <di:waypoint xsi:type="dc:Point" x="669" y="157" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="648" y="135.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_0vqrkz7_di" bpmnElement="EndEvent_0yv9t84">
+        <dc:Bounds x="284" y="250" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="261" y="289" width="84" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1adt5k0_di" bpmnElement="EndEvent_0zr2b6n">
+        <dc:Bounds x="669" y="139" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="654" y="178" width="66" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

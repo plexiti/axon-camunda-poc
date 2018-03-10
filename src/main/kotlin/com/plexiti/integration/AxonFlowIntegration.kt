@@ -45,10 +45,12 @@ abstract class AxonFlowIntegration {
     @Autowired @Transient
     private lateinit var responseHandler: ResponseHandler
 
-    /* Main association id with which saga is started */
+    // Main association id with which saga is started
     private lateinit var sagaAssociationId: String
 
-    private var openCommands = mutableMapOf<String, String>()
+    // Mapping of completion event names to flowAssociationIds
+    private var successEvents = mutableMapOf<String, String>()
+    private var failureEvents = mutableMapOf<String, String>()
 
     @SagaEventHandler(associationProperty = "sagaAssociationId")
     internal fun on(event: FlowCommandIssued) {
@@ -56,8 +58,11 @@ abstract class AxonFlowIntegration {
         commandBus.dispatch(GenericCommandMessage(messageFactory.create(event.command, this)), object: CommandCallback<Any, Any> {
 
             override fun onSuccess(commandMessage: CommandMessage<out Any>?, result: Any?) {
-                if (event.event != null) {
-                    openCommands = openCommands.apply { put(event.event, event.flowAssociationId) }
+                if (event.success != null) {
+                    successEvents = successEvents.apply { put(event.success, event.flowAssociationId) }
+                    if (event.failure != null) {
+                        failureEvents = failureEvents.apply { put(event.failure, event.flowAssociationId) }
+                    }
                 } else {
                     eventBus.publish(GenericEventMessage(FlowCommandSucceeded(event.flowAssociationId)))
                 }
@@ -100,9 +105,12 @@ abstract class AxonFlowIntegration {
 
         val eventName = event::class.qualifiedName!!
 
-        val eventMessage: Any = if (openCommands.contains(eventName)) {
-            val flowAssociationId = openCommands.remove(eventName)!!
+        val eventMessage: Any = if (successEvents.contains(eventName)) {
+            val flowAssociationId = successEvents.remove(eventName)!!
             FlowCommandSucceeded(flowAssociationId, bindValuesToFlow())
+        } else if (failureEvents.contains(eventName)) {
+            val flowAssociationId = failureEvents.remove(eventName)!!
+            FlowCommandFailed(flowAssociationId, eventName)
         } else {
             FlowEventReceived(this.sagaAssociationId, eventName, bindValuesToFlow())
         }
@@ -114,9 +122,9 @@ abstract class AxonFlowIntegration {
     protected abstract fun bindValuesToFlow(): Map<String, Any>
 }
 
-data class FlowCommandIssued(val sagaAssociationId: String, val flowAssociationId: String, val command: String, val event: String?)
+data class FlowCommandIssued(val sagaAssociationId: String, val flowAssociationId: String, val command: String, val success: String?, val failure: String?)
 data class FlowCommandSucceeded(val flowAssociationId: String, val variables: Map<String, Any?>? = null)
-data class FlowCommandFailed(val flowAssociationId: String, val errorCode: String, val errorMessage: String?)
+data class FlowCommandFailed(val flowAssociationId: String, val errorCode: String, val errorMessage: String? = null)
 data class FlowEventRaised(val sagaAssociationId: String, val flowAssociationId: String, val event: String)
 data class FlowEventReceived(val sagaAssociationId: String, val event: String, val variables: Map<String, Any?>? = null)
 data class FlowQueryRequested(val sagaAssociationId: String, val flowAssociationId: String, val query: String)
