@@ -18,7 +18,9 @@ import org.springframework.stereotype.Component
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
 
-// TODO support non spring environments
+// TODO clean code: configuration exceptions, e.g. missing commands etc
+// TODO infrastructure: non spring environments
+// TODO resilience: idempotency / deduplication
 
 @Component("command")
 class CommandBehaviour: JavaDelegate {
