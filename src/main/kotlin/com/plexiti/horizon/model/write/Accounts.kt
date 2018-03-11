@@ -2,11 +2,25 @@ package com.plexiti.horizon.model.write
 
 import com.plexiti.horizon.model.api.*
 import org.axonframework.commandhandling.CommandHandler
+import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
+import org.axonframework.commandhandling.model.AggregateNotFoundException
+import org.axonframework.commandhandling.model.Repository
 
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.context.annotation.Configuration
+import org.springframework.stereotype.Component
+import org.axonframework.eventsourcing.CachingEventSourcingRepository
+import org.axonframework.eventsourcing.EventCountSnapshotTriggerDefinition
+import org.axonframework.eventsourcing.EventSourcingRepository
+import org.springframework.context.annotation.Bean
+import org.axonframework.eventsourcing.eventstore.EventStore
+
+
 
 
 /**
@@ -51,6 +65,39 @@ class Account(): AggregateIdentifiedBy<AccountId>() {
     @EventSourcingHandler
     protected fun on(event: AmountCredited) {
         this.balance += event.amount
+    }
+
+}
+
+@Component
+class AccountService(
+    private var accountRepository: Repository<Account>,
+    private val commandGateway: CommandGateway
+) {
+
+    private val logger = LoggerFactory.getLogger(AccountService::class.java)
+
+    @CommandHandler
+    fun handle(command: VerifyOrCreateAccount) {
+        logger.debug(command.toString())
+        try {
+            accountRepository.load(command.name)
+        } catch (exception: AggregateNotFoundException) {
+            commandGateway.sendAndWait<CreateAccount>(CreateAccount(command.name))
+        }
+    }
+
+}
+
+@Configuration
+private class Configuration {
+
+    @Autowired
+    private lateinit var eventStore: EventStore
+
+    @Bean
+    fun accountRepository(): Repository<Account> {
+        return EventSourcingRepository(Account::class.java, eventStore)
     }
 
 }

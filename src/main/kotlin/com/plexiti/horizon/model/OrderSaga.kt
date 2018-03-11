@@ -57,11 +57,16 @@ class OrderSaga: Flow() {
         logger.debug(event.toString())
     }
 
-    override fun bindValuesToFlow() = emptyMap<String, Any>()
-
     @FlowCommandFactory
     fun retrievePayment(): RetrievePayment {
         val command = RetrievePayment(customer, orderId, orderSum)
+        logger.debug(command.toString())
+        return command
+    }
+
+    @FlowCommandFactory
+    fun verifyOrCreateAccount(): VerifyOrCreateAccount {
+        val command = VerifyOrCreateAccount(customer.id)
         logger.debug(command.toString())
         return command
     }

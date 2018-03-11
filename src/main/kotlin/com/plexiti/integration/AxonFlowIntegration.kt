@@ -55,27 +55,40 @@ abstract class AxonFlowIntegration {
     @SagaEventHandler(associationProperty = "sagaAssociationId")
     internal fun on(event: FlowCommandIssued) {
 
+        // Flow awaits completion of command
         if (event.flowAssociationId != null) {
 
             commandBus.dispatch(GenericCommandMessage(messageFactory.create(event.command, this)), object : CommandCallback<Any, Any> {
 
                 override fun onSuccess(commandMessage: CommandMessage<out Any>?, result: Any?) {
+
+                    // Flow awaits "completion" via defined events
                     if (event.success != null) {
+
                         successEvents = successEvents.apply { put(event.success, event.flowAssociationId) }
                         if (event.failure != null) {
                             failureEvents = failureEvents.apply { put(event.failure, event.flowAssociationId) }
                         }
+
+                    // Flow awaits completion via success or failure notification
                     } else {
+
                         eventBus.publish(GenericEventMessage(FlowCommandSucceeded(event.flowAssociationId)))
+
                     }
+
                 }
 
                 override fun onFailure(commandMessage: CommandMessage<out Any>?, cause: Throwable) {
+
+                    // Send back propagated exceptions as failure for both completion scenarios
                     eventBus.publish(GenericEventMessage(FlowCommandFailed(event.flowAssociationId, cause::class.java.canonicalName, cause.message)))
+
                 }
 
             })
 
+        // Flow fires command and moves on
         } else {
 
             commandBus.dispatch(GenericCommandMessage(messageFactory.create(event.command, this)))
@@ -113,22 +126,40 @@ abstract class AxonFlowIntegration {
 
         val eventName = event::class.qualifiedName!!
 
+        // Flow informed of successful command completion via event
         val eventMessage: Any = if (successEvents.contains(eventName)) {
+
             val flowAssociationId = successEvents.remove(eventName)!!
+            failureEvents.filter { it.value.equals(flowAssociationId) }.forEach {
+                failureEvents.remove(it.key)
+            }
             FlowCommandSucceeded(flowAssociationId, bindValuesToFlow())
+
+        // Flow informed of failed command completion via event
         } else if (failureEvents.contains(eventName)) {
+
             val flowAssociationId = failureEvents.remove(eventName)!!
+            successEvents.filter { it.value.equals(flowAssociationId) }.forEach {
+                successEvents.remove(it.key)
+            }
             FlowCommandFailed(flowAssociationId, eventName)
+
+        // Flow informed of external event trigger
         } else {
+
             FlowEventReceived(this.sagaAssociationId, eventName, bindValuesToFlow())
+
         }
 
         eventBus.publish(GenericEventMessage(eventMessage))
 
     }
 
-    protected abstract fun bindValuesToFlow(): Map<String, Any>
+    protected open fun bindValuesToFlow() = emptyMap<String, Any>()
+
 }
+
+// TODO refactor: signatures / parameter ordering
 
 data class FlowCommandIssued(val sagaAssociationId: String, val command: String, val flowAssociationId: String? = null, val success: String? = null, val failure: String? = null)
 data class FlowCommandSucceeded(val flowAssociationId: String, val variables: Map<String, Any?>? = null)

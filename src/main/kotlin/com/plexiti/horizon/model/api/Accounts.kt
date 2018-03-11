@@ -7,6 +7,7 @@ import javax.persistence.Id
 class AccountId(id: String): Identifier<String>(id)
 
 data class CreateAccount(val name: String)
+data class VerifyOrCreateAccount(val name: String)
 data class AccountCreated(@TargetAggregateIdentifier val accountId: AccountId)
 
 data class WithdrawAmount(@TargetAggregateIdentifier val accountId: AccountId, val referenceId: String, val amount: Float)
