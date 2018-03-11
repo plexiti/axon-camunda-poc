@@ -55,24 +55,32 @@ abstract class AxonFlowIntegration {
     @SagaEventHandler(associationProperty = "sagaAssociationId")
     internal fun on(event: FlowCommandIssued) {
 
-        commandBus.dispatch(GenericCommandMessage(messageFactory.create(event.command, this)), object: CommandCallback<Any, Any> {
+        if (event.flowAssociationId != null) {
 
-            override fun onSuccess(commandMessage: CommandMessage<out Any>?, result: Any?) {
-                if (event.success != null) {
-                    successEvents = successEvents.apply { put(event.success, event.flowAssociationId) }
-                    if (event.failure != null) {
-                        failureEvents = failureEvents.apply { put(event.failure, event.flowAssociationId) }
+            commandBus.dispatch(GenericCommandMessage(messageFactory.create(event.command, this)), object : CommandCallback<Any, Any> {
+
+                override fun onSuccess(commandMessage: CommandMessage<out Any>?, result: Any?) {
+                    if (event.success != null) {
+                        successEvents = successEvents.apply { put(event.success, event.flowAssociationId) }
+                        if (event.failure != null) {
+                            failureEvents = failureEvents.apply { put(event.failure, event.flowAssociationId) }
+                        }
+                    } else {
+                        eventBus.publish(GenericEventMessage(FlowCommandSucceeded(event.flowAssociationId)))
                     }
-                } else {
-                    eventBus.publish(GenericEventMessage(FlowCommandSucceeded(event.flowAssociationId)))
                 }
-            }
 
-            override fun onFailure(commandMessage: CommandMessage<out Any>?, cause: Throwable) {
-                eventBus.publish(GenericEventMessage(FlowCommandFailed(event.flowAssociationId, cause::class.java.canonicalName, cause.message)))
-            }
+                override fun onFailure(commandMessage: CommandMessage<out Any>?, cause: Throwable) {
+                    eventBus.publish(GenericEventMessage(FlowCommandFailed(event.flowAssociationId, cause::class.java.canonicalName, cause.message)))
+                }
 
-        })
+            })
+
+        } else {
+
+            commandBus.dispatch(GenericCommandMessage(messageFactory.create(event.command, this)))
+
+        }
 
     }
 
@@ -122,7 +130,7 @@ abstract class AxonFlowIntegration {
     protected abstract fun bindValuesToFlow(): Map<String, Any>
 }
 
-data class FlowCommandIssued(val sagaAssociationId: String, val flowAssociationId: String, val command: String, val success: String?, val failure: String?)
+data class FlowCommandIssued(val sagaAssociationId: String, val command: String, val flowAssociationId: String? = null, val success: String? = null, val failure: String? = null)
 data class FlowCommandSucceeded(val flowAssociationId: String, val variables: Map<String, Any?>? = null)
 data class FlowCommandFailed(val flowAssociationId: String, val errorCode: String, val errorMessage: String? = null)
 data class FlowEventRaised(val sagaAssociationId: String, val flowAssociationId: String, val event: String)

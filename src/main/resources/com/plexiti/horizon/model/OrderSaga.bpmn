@@ -11,7 +11,7 @@
       <bpmn:messageEventDefinition messageRef="Message_1haszv5" />
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1mcy2sg" sourceRef="StartEvent_1k91tc0" targetRef="Task_16lnb17" />
-    <bpmn:serviceTask id="Task_16lnb17" name="Retrieve payment" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
+    <bpmn:serviceTask id="Task_16lnb17" name="Retrieve payment" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${act}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.RetrievePayment" />
@@ -38,7 +38,7 @@
       <bpmn:outgoing>SequenceFlow_0bg999w</bpmn:outgoing>
     </bpmn:manualTask>
     <bpmn:sequenceFlow id="SequenceFlow_0bg999w" sourceRef="ManualTask_09na2ud" targetRef="EndEvent_0zr2b6n" />
-    <bpmn:endEvent id="EndEvent_0yv9t84" name="Order not fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEvent">
+    <bpmn:endEvent id="EndEvent_0yv9t84" name="Order not fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="event" value="com.plexiti.horizon.model.api.OrderNotFulfilled" />
@@ -47,7 +47,7 @@
       <bpmn:incoming>SequenceFlow_0tuuf3a</bpmn:incoming>
       <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
     </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_0zr2b6n" name="Order fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEvent" camunda:delegateExpression="${event}">
+    <bpmn:endEvent id="EndEvent_0zr2b6n" name="Order fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent" camunda:delegateExpression="${event}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="event" value="com.plexiti.horizon.model.api.OrderFulfilled" />

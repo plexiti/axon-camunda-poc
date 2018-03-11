@@ -21,9 +21,26 @@ import org.springframework.stereotype.Component
 // TODO support non spring environments
 
 @Component("command")
-class CommandBehaviour: AbstractBpmnActivityBehavior() {
+class CommandBehaviour: JavaDelegate {
 
     private val logger = LoggerFactory.getLogger(CommandBehaviour::class.java)
+
+    @Autowired
+    private lateinit var eventBus: EventBus
+
+    override fun execute(execution: DelegateExecution) {
+        val messageName = property("command", execution.bpmnModelElementInstance)!!
+        val eventMessage = GenericEventMessage(FlowCommandIssued(execution.processBusinessKey, messageName))
+        logger.debug(eventMessage.payload.toString())
+        eventBus.publish(eventMessage)
+    }
+
+}
+
+@Component("act")
+class ActBehaviour: AbstractBpmnActivityBehavior() {
+
+    private val logger = LoggerFactory.getLogger(ActBehaviour::class.java)
 
     @Autowired
     private lateinit var eventBus: EventBus
@@ -35,7 +52,7 @@ class CommandBehaviour: AbstractBpmnActivityBehavior() {
         val command = property("command", execution.bpmnModelElementInstance)!!
         val success = property("success", execution.bpmnModelElementInstance)
         val failure = property("failure", execution.bpmnModelElementInstance)
-        val eventMessage = GenericEventMessage(FlowCommandIssued(execution.processBusinessKey, execution.id, command, success, failure))
+        val eventMessage = GenericEventMessage(FlowCommandIssued(execution.processBusinessKey, command, execution.id, success, failure))
         logger.debug(eventMessage.payload.toString())
         eventBus.publish(eventMessage)
     }
@@ -66,7 +83,7 @@ class CommandBehaviour: AbstractBpmnActivityBehavior() {
 @Component("event")
 class EventBehaviour: JavaDelegate {
 
-    private val logger = LoggerFactory.getLogger(CommandBehaviour::class.java)
+    private val logger = LoggerFactory.getLogger(ActBehaviour::class.java)
 
     @Autowired
     private lateinit var eventBus: EventBus

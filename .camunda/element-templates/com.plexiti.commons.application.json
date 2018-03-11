@@ -1,6 +1,6 @@
 [
     {
-        "name": "Issue command, wait for completion",
+        "name": "Issue command and await completion",
         "id": "com.plexiti.commons.application.CommandAndCompletion",
         "appliesTo": [
             "bpmn:ServiceTask"
@@ -9,7 +9,7 @@
             {
                 "label": "Bean Binding",
                 "type": "Hidden",
-                "value": "${command}",
+                "value": "${act}",
                 "editable": false,
                 "binding": {
                     "type": "property",
@@ -35,7 +35,7 @@
         }
     },
     {
-        "name": "Issue command, handle event",
+        "name": "Issue command and wait for event",
         "id": "com.plexiti.commons.application.CommandAndEvent",
         "appliesTo": [
             "bpmn:ServiceTask"
@@ -44,7 +44,7 @@
             {
                 "label": "Bean Binding",
                 "type": "Hidden",
-                "value": "${command}",
+                "value": "${act}",
                 "editable": false,
                 "binding": {
                     "type": "property",
@@ -94,11 +94,10 @@
         }
     },
     {
-        "name": "Raise event",
-        "id": "com.plexiti.commons.application.RaisedEvent",
+        "name": "Raise event and move on",
+        "id": "com.plexiti.commons.application.RaisedIntermediateEvent",
         "isDefault": false,
         "appliesTo": [
-            "bpmn:EndEvent",
             "bpmn:SendTask",
             "bpmn:IntermediateThrowEvent"
         ],
@@ -131,7 +130,77 @@
         }
     },
     {
-        "name": "Issue query, wait for response",
+        "name": "Raise event and finish path",
+        "id": "com.plexiti.commons.application.RaisedEndEvent",
+        "isDefault": false,
+        "appliesTo": [
+            "bpmn:EndEvent"
+        ],
+        "properties": [
+            {
+                "label": "Bean Binding",
+                "type": "Hidden",
+                "value": "${event}",
+                "editable": false,
+                "binding": {
+                    "type": "property",
+                    "name": "camunda:delegateExpression"
+                }
+            },
+            {
+                "label": "Raise event",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "event"
+                },
+                "constraints": {
+                    "notEmpty": true
+                }
+            }
+        ],
+        "entriesVisible": {
+            "_all": true
+        }
+    },
+    {
+        "name": "Issue command and move on",
+        "id": "com.plexiti.commons.application.Command",
+        "isDefault": false,
+        "appliesTo": [
+            "bpmn:SendTask"
+        ],
+        "properties": [
+            {
+                "label": "Bean Binding",
+                "type": "Hidden",
+                "value": "${command}",
+                "editable": false,
+                "binding": {
+                    "type": "property",
+                    "name": "camunda:delegateExpression"
+                }
+            },
+            {
+                "label": "Fire command",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "command"
+                },
+                "constraints": {
+                    "notEmpty": true
+                }
+            }
+        ],
+        "entriesVisible": {
+            "_all": true
+        }
+    },
+    {
+        "name": "Issue query and wait for response",
         "id": "com.plexiti.commons.application.Query",
         "isDefault": false,
         "appliesTo": [
@@ -166,13 +235,14 @@
         }
     },
     {
-        "name": "React on event",
+        "name": "Wait for event and move on",
         "id": "com.plexiti.commons.application.EventListener",
         "isDefault": false,
         "appliesTo": [
             "bpmn:StartEvent",
             "bpmn:ReceiveTask",
-            "bpmn:IntermediateCatchEvent"
+            "bpmn:IntermediateCatchEvent",
+            "bpmn:BoundaryEvent"
         ],
         "properties": [
             {
