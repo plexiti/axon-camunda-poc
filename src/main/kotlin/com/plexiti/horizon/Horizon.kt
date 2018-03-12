@@ -1,6 +1,5 @@
 package com.plexiti.horizon
 
-import org.slf4j.LoggerFactory
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
@@ -10,15 +9,13 @@ import org.springframework.context.annotation.ComponentScan
  */
 @SpringBootApplication
 @ComponentScan("com.plexiti", "org.camunda")
-class HorizonApp {
+class Horizon {
 
-    private val logger = LoggerFactory.getLogger(HorizonApp::class.java)
-
-    companion object {
+    companion object Application {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            SpringApplication.run(HorizonApp::class.java, *args)
+            SpringApplication.run(Horizon::class.java, *args)
         }
 
     }
