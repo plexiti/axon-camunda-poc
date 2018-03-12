@@ -33,20 +33,16 @@ class Payment(): AggregateIdentifiedBy<PaymentId>() {
     fun handle(command: CoverPayment) {
         logger.debug(command.toString())
         if ((amount - covered - command.amount) > 0F) {
-            apply(PaymentPartlyCovered(id, command.amount))
+            apply(PaymentPartlyCovered(id, covered + command.amount))
         } else {
-            apply(PaymentFullyCovered(id, command.amount))
+            apply(PaymentReceived(id, accountId!!, amount))
         }
     }
 
     @CommandHandler
-    fun handle(command: FinishPayment) {
+    fun handle(command: CancelPayment) {
         logger.debug(command.toString())
-        if ((amount - covered) > 0F) {
-            apply(PaymentNotReceived(id, accountId!!, amount - covered))
-        } else {
-            apply(PaymentReceived(id, accountId!!, covered))
-        }
+        apply(PaymentCanceled(id, accountId!!, amount - covered))
     }
 
     @EventSourcingHandler
@@ -59,22 +55,16 @@ class Payment(): AggregateIdentifiedBy<PaymentId>() {
 
     @EventSourcingHandler
     protected fun on(event: PaymentPartlyCovered) {
-        this.id = event.paymentId
-        this.covered += event.amount
-    }
-
-    @EventSourcingHandler
-    protected fun on(event: PaymentFullyCovered) {
-        this.id = event.paymentId
-        this.covered += event.amount
+        this.covered = event.amount
     }
 
     @EventSourcingHandler
     protected fun on(event: PaymentReceived) {
+        this.covered = event.amount
     }
 
     @EventSourcingHandler
-    protected fun on(event: PaymentNotReceived) {
+    protected fun on(event: PaymentCanceled) {
     }
 
 }

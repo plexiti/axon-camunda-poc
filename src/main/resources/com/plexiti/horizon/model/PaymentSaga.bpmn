@@ -20,7 +20,7 @@
     <bpmn:sequenceFlow id="SequenceFlow_06hj8g5" name="yes" sourceRef="ExclusiveGateway_032y4gi" targetRef="Task_0yyle2z">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{creditAvailable}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:serviceTask id="Task_0yyle2z" name="Withdraw charge from cust. account" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${act}">
+    <bpmn:serviceTask id="Task_0yyle2z" name="Withdraw amount from cust. account" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${act}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.WithdrawAmount" />
@@ -36,7 +36,7 @@
       <bpmn:outgoing>SequenceFlow_117993c</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0g9aenz" sourceRef="Task_0yyle2z" targetRef="ExclusiveGateway_0hekyt4" />
-    <bpmn:sequenceFlow id="SequenceFlow_0djij4m" name="yes" sourceRef="ExclusiveGateway_0hekyt4" targetRef="IntermediateThrowEvent_0nbj0bp">
+    <bpmn:sequenceFlow id="SequenceFlow_0djij4m" name="yes" sourceRef="ExclusiveGateway_0hekyt4" targetRef="EndEvent_16s3byo">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{creditFullyCovering}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_117993c" name="no" sourceRef="ExclusiveGateway_0hekyt4" targetRef="IntermediateThrowEvent_0h7v72w">
@@ -50,7 +50,7 @@
       <bpmn:errorEventDefinition />
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_17vx50e" sourceRef="BoundaryEvent_0xawlp8" targetRef="Task_1gui4vf" />
-    <bpmn:serviceTask id="Task_0vr8mvr" name="Charge credit card" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndCompletion" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${act}">
+    <bpmn:serviceTask id="Task_0vr8mvr" name="Charge amount by credit card" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndCompletion" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${act}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.ChargeCreditCard" />
@@ -76,8 +76,8 @@
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_13umfbk" name="Every&#10;2 days" sourceRef="BoundaryEvent_0eiw3j4" targetRef="EndEvent_1oelcbo" />
     <bpmn:sequenceFlow id="SequenceFlow_1yc74ur" sourceRef="Task_1gui4vf" targetRef="Task_0vr8mvr" />
-    <bpmn:sequenceFlow id="SequenceFlow_0ulp52k" sourceRef="Task_0vr8mvr" targetRef="IntermediateThrowEvent_0ik8wl7" />
-    <bpmn:endEvent id="EndEvent_1oelcbo" name="Update credit card reminded" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${event}">
+    <bpmn:sequenceFlow id="SequenceFlow_0ulp52k" sourceRef="Task_0vr8mvr" targetRef="EndEvent_15oscy6" />
+    <bpmn:endEvent id="EndEvent_1oelcbo" name="Update credit card reminder sent to customer" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${event}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="event" value="com.plexiti.horizon.model.api.UpdateCreditCardReminded" />
@@ -89,21 +89,23 @@
     <bpmn:boundaryEvent id="BoundaryEvent_1r1o6id" name="(in case) &#10;Payment to be compensated" attachedToRef="Task_0yyle2z">
       <bpmn:compensateEventDefinition />
     </bpmn:boundaryEvent>
-    <bpmn:serviceTask id="Task_1r4av6f" name="Credit charge &#10;back to account" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndCompletion" isForCompensation="true" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${act}">
+    <bpmn:serviceTask id="Task_1r4av6f" name="Credit amount &#10;back to account" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndCompletion" isForCompensation="true" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${act}">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="command" value="com.plexiti.horizon.model.api.CreditAmount" />
         </camunda:properties>
       </bpmn:extensionElements>
     </bpmn:serviceTask>
-    <bpmn:endEvent id="EndEvent_15oscy6" name="Payment&#10;received" camunda:modelerTemplate="com.plexiti.commons.application.FiredEndCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
+    <bpmn:endEvent id="EndEvent_15oscy6" name="Payment&#10;received" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${act}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="command" value="com.plexiti.horizon.model.api.FinishPayment" />
+          <camunda:property name="failure" value="" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.CoverPayment" />
+          <camunda:property name="success" value="com.plexiti.horizon.model.api.PaymentReceived" />
         </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0871z8w</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
+      <bpmn:incoming>SequenceFlow_0ulp52k</bpmn:incoming>
+      <bpmn:messageEventDefinition camunda:delegateExpression="${act}" />
     </bpmn:endEvent>
     <bpmn:intermediateThrowEvent id="EndEvent_1b2osk8" name="Payment to be compensated" camunda:delegateExpression="${event}">
       <bpmn:extensionElements>
@@ -116,23 +118,27 @@
       <bpmn:compensateEventDefinition waitForCompletion="true" />
     </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1vqj5bh" sourceRef="EndEvent_1b2osk8" targetRef="EndEvent_0rjkejj" />
-    <bpmn:endEvent id="EndEvent_0rjkejj" name="Payment &#10;not received" camunda:modelerTemplate="com.plexiti.commons.application.FiredEndCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
+    <bpmn:endEvent id="EndEvent_0rjkejj" name="Payment &#10;canceled" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${act}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="command" value="com.plexiti.horizon.model.api.FinishPayment" />
+          <camunda:property name="failure" value="" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.CancelPayment" />
+          <camunda:property name="success" value="com.plexiti.horizon.model.api.PaymentCanceled" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1vqj5bh</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
+      <bpmn:messageEventDefinition camunda:delegateExpression="${act}" />
     </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_16s3byo" name="Payment &#10;received" camunda:modelerTemplate="com.plexiti.commons.application.FiredEndCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
+    <bpmn:endEvent id="EndEvent_16s3byo" name="Payment &#10;received" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${act}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="command" value="com.plexiti.horizon.model.api.FinishPayment" />
+          <camunda:property name="failure" value="" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.CoverPayment" />
+          <camunda:property name="success" value="com.plexiti.horizon.model.api.PaymentReceived" />
         </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0boiu4e</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
+      <bpmn:incoming>SequenceFlow_0djij4m</bpmn:incoming>
+      <bpmn:messageEventDefinition camunda:delegateExpression="${act}" />
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_10kidia" sourceRef="IntermediateThrowEvent_0h7v72w" targetRef="Task_0vr8mvr" />
     <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0h7v72w" name="Payment &#10;partly covered&#10;" camunda:modelerTemplate="com.plexiti.commons.application.FiredIntermediateCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
@@ -163,28 +169,6 @@
       <bpmn:outgoing>SequenceFlow_1q648th</bpmn:outgoing>
       <bpmn:messageEventDefinition messageRef="Message_1vckxtw" />
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0boiu4e" sourceRef="IntermediateThrowEvent_0nbj0bp" targetRef="EndEvent_16s3byo" />
-    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0nbj0bp" name="Payment fully covered" camunda:modelerTemplate="com.plexiti.commons.application.FiredIntermediateCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="command" value="com.plexiti.horizon.model.api.CoverPayment" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0djij4m</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0boiu4e</bpmn:outgoing>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
-    </bpmn:intermediateThrowEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0871z8w" sourceRef="IntermediateThrowEvent_0ik8wl7" targetRef="EndEvent_15oscy6" />
-    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0ik8wl7" name="Payment fully covered" camunda:modelerTemplate="com.plexiti.commons.application.FiredIntermediateCommand" camunda:delegateExpression="${command}">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="command" value="com.plexiti.horizon.model.api.CoverPayment" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0ulp52k</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0871z8w</bpmn:outgoing>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
-    </bpmn:intermediateThrowEvent>
     <bpmn:association id="Association_09lrmud" associationDirection="One" sourceRef="BoundaryEvent_1r1o6id" targetRef="Task_1r4av6f" />
   </bpmn:process>
   <bpmn:message id="Message_1t4sa6a" name="com.plexiti.horizon.model.api.CreditCardDetailsUpdated" />
@@ -240,9 +224,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0djij4m_di" bpmnElement="SequenceFlow_0djij4m">
         <di:waypoint xsi:type="dc:Point" x="592" y="236" />
-        <di:waypoint xsi:type="dc:Point" x="641" y="236" />
+        <di:waypoint xsi:type="dc:Point" x="632" y="236" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="600.4999999999999" y="215" width="18" height="13" />
+          <dc:Bounds x="597.6938775510204" y="215" width="18" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_117993c_di" bpmnElement="SequenceFlow_117993c">
@@ -254,75 +238,75 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0r0szyx_di" bpmnElement="SequenceFlow_0r0szyx">
         <di:waypoint xsi:type="dc:Point" x="375" y="120" />
-        <di:waypoint xsi:type="dc:Point" x="772" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="702" y="120" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="385.56847133757964" y="100" width="13" height="13" />
+          <dc:Bounds x="382.91435768261965" y="100" width="13" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BoundaryEvent_17l3ksv_di" bpmnElement="BoundaryEvent_0xawlp8">
-        <dc:Bounds x="830" y="142" width="36" height="36" />
+        <dc:Bounds x="760" y="142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="865" y="153" width="72" height="25" />
+          <dc:Bounds x="795" y="153" width="72" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_17vx50e_di" bpmnElement="SequenceFlow_17vx50e">
-        <di:waypoint xsi:type="dc:Point" x="848" y="178" />
-        <di:waypoint xsi:type="dc:Point" x="848" y="236" />
-        <di:waypoint xsi:type="dc:Point" x="900" y="236" />
+        <di:waypoint xsi:type="dc:Point" x="778" y="178" />
+        <di:waypoint xsi:type="dc:Point" x="778" y="236" />
+        <di:waypoint xsi:type="dc:Point" x="830" y="236" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="818" y="201" width="90" height="12" />
+          <dc:Bounds x="748" y="201" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ServiceTask_1qzq7ty_di" bpmnElement="Task_0vr8mvr">
-        <dc:Bounds x="772" y="80" width="100" height="80" />
+        <dc:Bounds x="702" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BoundaryEvent_0lsst2e_di" bpmnElement="BoundaryEvent_0t0ikmi">
-        <dc:Bounds x="982" y="236" width="36" height="36" />
+        <dc:Bounds x="912" y="236" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1008" y="220" width="41" height="13" />
+          <dc:Bounds x="938" y="220" width="41" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1jpspva_di" bpmnElement="SequenceFlow_1jpspva">
-        <di:waypoint xsi:type="dc:Point" x="1018" y="254" />
-        <di:waypoint xsi:type="dc:Point" x="1059" y="254" />
+        <di:waypoint xsi:type="dc:Point" x="948" y="254" />
+        <di:waypoint xsi:type="dc:Point" x="989" y="254" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="993.5" y="233" width="90" height="12" />
+          <dc:Bounds x="923.5" y="233" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BoundaryEvent_16trjt5_di" bpmnElement="BoundaryEvent_0eiw3j4">
-        <dc:Bounds x="932" y="258" width="36" height="36" />
+        <dc:Bounds x="862" y="258" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="905" y="298" width="90" height="12" />
+          <dc:Bounds x="835" y="298" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_13umfbk_di" bpmnElement="SequenceFlow_13umfbk">
-        <di:waypoint xsi:type="dc:Point" x="950" y="294" />
-        <di:waypoint xsi:type="dc:Point" x="950" y="352" />
-        <di:waypoint xsi:type="dc:Point" x="982" y="352" />
+        <di:waypoint xsi:type="dc:Point" x="880" y="294" />
+        <di:waypoint xsi:type="dc:Point" x="880" y="352" />
+        <di:waypoint xsi:type="dc:Point" x="912" y="352" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="968" y="281.0000000000002" width="33" height="25" />
+          <dc:Bounds x="893.58" y="291" width="33" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1yc74ur_di" bpmnElement="SequenceFlow_1yc74ur">
-        <di:waypoint xsi:type="dc:Point" x="915" y="276" />
-        <di:waypoint xsi:type="dc:Point" x="915" y="304" />
-        <di:waypoint xsi:type="dc:Point" x="802" y="304" />
-        <di:waypoint xsi:type="dc:Point" x="802" y="160" />
+        <di:waypoint xsi:type="dc:Point" x="845" y="276" />
+        <di:waypoint xsi:type="dc:Point" x="845" y="304" />
+        <di:waypoint xsi:type="dc:Point" x="732" y="304" />
+        <di:waypoint xsi:type="dc:Point" x="732" y="160" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="813.5" y="283" width="90" height="12" />
+          <dc:Bounds x="744" y="283" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0ulp52k_di" bpmnElement="SequenceFlow_0ulp52k">
-        <di:waypoint xsi:type="dc:Point" x="872" y="120" />
-        <di:waypoint xsi:type="dc:Point" x="932" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="802" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="1067" y="120" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="857" y="99" width="90" height="12" />
+          <dc:Bounds x="889.5" y="99" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_10h631f_di" bpmnElement="EndEvent_1oelcbo">
-        <dc:Bounds x="982" y="334" width="36" height="36" />
+        <dc:Bounds x="912" y="334" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="965" y="375" width="71" height="25" />
+          <dc:Bounds x="953" y="333" width="82" height="38" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BoundaryEvent_0o6nbos_di" bpmnElement="BoundaryEvent_1r1o6id">
@@ -340,40 +324,40 @@
         <dc:Bounds x="488" y="312" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0lhzppf_di" bpmnElement="EndEvent_15oscy6">
-        <dc:Bounds x="1137" y="102" width="36" height="36" />
+        <dc:Bounds x="1067" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1133" y="147" width="44" height="25" />
+          <dc:Bounds x="1063" y="147" width="44" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_028su61_di" bpmnElement="EndEvent_1b2osk8">
-        <dc:Bounds x="1059" y="236" width="36" height="36" />
+        <dc:Bounds x="989" y="236" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1041" y="273" width="71" height="25" />
+          <dc:Bounds x="971" y="273" width="71" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1vqj5bh_di" bpmnElement="SequenceFlow_1vqj5bh">
-        <di:waypoint xsi:type="dc:Point" x="1095" y="254" />
-        <di:waypoint xsi:type="dc:Point" x="1137" y="254" />
+        <di:waypoint xsi:type="dc:Point" x="1025" y="254" />
+        <di:waypoint xsi:type="dc:Point" x="1067" y="254" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1071" y="233" width="90" height="13" />
+          <dc:Bounds x="1001" y="233" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_18vg5ap_di" bpmnElement="EndEvent_0rjkejj">
-        <dc:Bounds x="1137" y="236" width="36" height="36" />
+        <dc:Bounds x="1067" y="236" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1125" y="275" width="60" height="25" />
+          <dc:Bounds x="1063" y="275" width="45" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0cysiex_di" bpmnElement="EndEvent_16s3byo">
-        <dc:Bounds x="717" y="218" width="36" height="36" />
+        <dc:Bounds x="632" y="218" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="713" y="258" width="44" height="25" />
+          <dc:Bounds x="628" y="258" width="44" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_10kidia_di" bpmnElement="SequenceFlow_10kidia">
         <di:waypoint xsi:type="dc:Point" x="567" y="148" />
         <di:waypoint xsi:type="dc:Point" x="567" y="120" />
-        <di:waypoint xsi:type="dc:Point" x="772" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="702" y="120" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="537" y="127.5" width="90" height="13" />
         </bpmndi:BPMNLabel>
@@ -381,42 +365,16 @@
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0b84dw1_di" bpmnElement="IntermediateThrowEvent_0h7v72w">
         <dc:Bounds x="549" y="148" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="588" y="147" width="70" height="38" />
+          <dc:Bounds x="588" y="150" width="70" height="38" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ReceiveTask_1aazwyp_di" bpmnElement="Task_1gui4vf">
-        <dc:Bounds x="900" y="196" width="100" height="80" />
+        <dc:Bounds x="830" y="196" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_10k5zb4_di" bpmnElement="StartEvent_1">
         <dc:Bounds x="108" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="102" y="147" width="49" height="25" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0boiu4e_di" bpmnElement="SequenceFlow_0boiu4e">
-        <di:waypoint xsi:type="dc:Point" x="677" y="236" />
-        <di:waypoint xsi:type="dc:Point" x="717" y="236" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="697" y="214.5" width="0" height="13" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="IntermediateThrowEvent_1krox5h_di" bpmnElement="IntermediateThrowEvent_0nbj0bp">
-        <dc:Bounds x="641" y="218" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="626" y="257" width="67" height="25" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0871z8w_di" bpmnElement="SequenceFlow_0871z8w">
-        <di:waypoint xsi:type="dc:Point" x="968" y="120" />
-        <di:waypoint xsi:type="dc:Point" x="1137" y="120" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1052.5" y="98.5" width="0" height="13" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="IntermediateThrowEvent_02h58np_di" bpmnElement="IntermediateThrowEvent_0ik8wl7">
-        <dc:Bounds x="932" y="102" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="916" y="69" width="67" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

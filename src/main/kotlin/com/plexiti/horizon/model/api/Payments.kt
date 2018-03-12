@@ -11,9 +11,8 @@ data class RequestPayment(val accountId: AccountId, val orderId: OrderId, val am
 data class PaymentRequested(val paymentId: PaymentId, val accountId: AccountId, val orderId: OrderId, val amount: Float)
 
 data class CoverPayment(@TargetAggregateIdentifier val paymentId: PaymentId, val amount: Float)
-data class PaymentFullyCovered(@TargetAggregateIdentifier val paymentId: PaymentId, val amount: Float)
 data class PaymentPartlyCovered(@TargetAggregateIdentifier val paymentId: PaymentId, val amount: Float)
-
-data class FinishPayment(@TargetAggregateIdentifier val paymentId: PaymentId)
 data class PaymentReceived(@TargetAggregateIdentifier val paymentId: PaymentId, val accountId: AccountId, val amount: Float)
-data class PaymentNotReceived(@TargetAggregateIdentifier val paymentId: PaymentId, val accountId: AccountId, val amount: Float)
+
+data class CancelPayment(@TargetAggregateIdentifier val paymentId: PaymentId)
+data class PaymentCanceled(@TargetAggregateIdentifier val paymentId: PaymentId, val accountId: AccountId, val amount: Float)

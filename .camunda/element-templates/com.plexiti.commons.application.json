@@ -1,9 +1,12 @@
 [
     {
-        "name": "Issue command and await completion",
+        "name": "Issue command and wait for completion",
         "id": "com.plexiti.commons.application.CommandAndCompletion",
         "appliesTo": [
-            "bpmn:ServiceTask"
+            "bpmn:ServiceTask",
+            "bpmn:SendTask",
+            "bpmn:IntermediateThrowEvent",
+            "bpmn:EndEvent"
         ],
         "properties": [
             {
@@ -38,7 +41,10 @@
         "name": "Issue command and wait for event",
         "id": "com.plexiti.commons.application.CommandAndEvent",
         "appliesTo": [
-            "bpmn:ServiceTask"
+            "bpmn:ServiceTask",
+            "bpmn:SendTask",
+            "bpmn:IntermediateThrowEvent",
+            "bpmn:EndEvent"
         ],
         "properties": [
             {

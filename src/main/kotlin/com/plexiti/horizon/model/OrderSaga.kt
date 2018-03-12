@@ -42,7 +42,7 @@ class OrderSaga: Flow() {
     }
 
     @SagaEventHandler(associationProperty = "paymentId")
-    fun on(event: PaymentNotReceived) {
+    fun on(event: PaymentCanceled) {
         logger.debug(event.toString())
         correlateEventToFlow(event)
     }
@@ -51,12 +51,14 @@ class OrderSaga: Flow() {
     @SagaEventHandler(associationProperty = "orderId")
     fun on (event: OrderFulfilled) {
         logger.debug(event.toString())
+        correlateEventToFlow(event)
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = "orderId")
     fun on (event: OrderNotFulfilled) {
         logger.debug(event.toString())
+        correlateEventToFlow(event)
     }
 
     @FlowCommandFactory

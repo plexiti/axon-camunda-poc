@@ -62,21 +62,18 @@ class PaymentSaga: Flow() {
         logger.debug(event.toString())
     }
 
-    @SagaEventHandler(associationProperty = "paymentId")
-    fun on(event: PaymentFullyCovered) {
-        logger.debug(event.toString())
-    }
-
     @EndSaga
     @SagaEventHandler(associationProperty = "paymentId")
     fun on(event: PaymentReceived) {
         logger.debug(event.toString())
+        correlateEventToFlow(event)
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = "paymentId")
-    fun on(event: PaymentNotReceived) {
+    fun on(event: PaymentCanceled) {
         logger.debug(event.toString())
+        correlateEventToFlow(event)
     }
 
     // TODO alternatives: e.g. mirror all member properties
@@ -119,22 +116,15 @@ class PaymentSaga: Flow() {
     }
 
     @FlowCommandFactory
-    fun creditAmount(): CreditAmount {
-        val command = CreditAmount(accountId, paymentId.id, amountWithdrawnFromAccount)
-        logger.debug(command.toString())
-        return command
-    }
-
-    @FlowCommandFactory
-    fun finishPayment(): FinishPayment {
-        val command = FinishPayment(paymentId)
-        logger.debug(command.toString())
-        return command
-    }
-
-    @FlowCommandFactory
     fun coverPayment(): CoverPayment {
         val command = CoverPayment(paymentId, if (amountChargedByCreditCard > 0) amountChargedByCreditCard else amountWithdrawnFromAccount)
+        logger.debug(command.toString())
+        return command
+    }
+
+    @FlowCommandFactory
+    fun cancelPayment(): CancelPayment {
+        val command = CancelPayment(paymentId)
         logger.debug(command.toString())
         return command
     }
@@ -144,6 +134,13 @@ class PaymentSaga: Flow() {
         val event = UpdateCreditCardReminded(accountId)
         logger.debug(event.toString())
         return event
+    }
+
+    @FlowCommandFactory
+    fun creditAmount(): CreditAmount {
+        val command = CreditAmount(accountId, paymentId.id, amountWithdrawnFromAccount)
+        logger.debug(command.toString())
+        return command
     }
 
 }
