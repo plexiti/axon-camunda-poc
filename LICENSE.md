@@ -1,1 +1,1 @@
-&copy; plexit GmbH 2018 - All rights reserved.
+&copy; plexiti GmbH 2018 - All rights reserved.

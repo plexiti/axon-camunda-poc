@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 @Service
 class CreditCardService() {
 
-    private val logger = LoggerFactory.getLogger(Account::class.java)
+    private val logger = LoggerFactory.getLogger(CreditCardService::class.java)
 
     @Autowired
     private lateinit var eventBus: EventBus
@@ -27,7 +27,7 @@ class CreditCardService() {
         logger.debug(command.toString())
         if (command.expired)
             throw IllegalArgumentException("Credit Card is expired!")
-        val eventMessage = GenericEventMessage.asEventMessage<CreditCardCharged>(CreditCardCharged(command.accountId, command.amount))
+        val eventMessage = GenericEventMessage.asEventMessage<CreditCardCharged>(CreditCardCharged(command.accountId, command.referenceId, command.amount))
         eventBus.publish(eventMessage)
     }
 

@@ -76,7 +76,7 @@
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_13umfbk" name="Every&#10;2 days" sourceRef="BoundaryEvent_0eiw3j4" targetRef="EndEvent_1oelcbo" />
     <bpmn:sequenceFlow id="SequenceFlow_1yc74ur" sourceRef="Task_1gui4vf" targetRef="Task_0vr8mvr" />
-    <bpmn:sequenceFlow id="SequenceFlow_0ulp52k" sourceRef="Task_0vr8mvr" targetRef="EndEvent_15oscy6" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ulp52k" sourceRef="Task_0vr8mvr" targetRef="IntermediateThrowEvent_0ik8wl7" />
     <bpmn:endEvent id="EndEvent_1oelcbo" name="Update credit card reminded" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${event}">
       <bpmn:extensionElements>
         <camunda:properties>
@@ -96,14 +96,14 @@
         </camunda:properties>
       </bpmn:extensionElements>
     </bpmn:serviceTask>
-    <bpmn:endEvent id="EndEvent_15oscy6" name="Payment&#10;received" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${event}">
+    <bpmn:endEvent id="EndEvent_15oscy6" name="Payment&#10;received" camunda:modelerTemplate="com.plexiti.commons.application.FiredEndCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.PaymentReceived" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.FinishPayment" />
         </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0ulp52k</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+      <bpmn:incoming>SequenceFlow_0871z8w</bpmn:incoming>
+      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
     </bpmn:endEvent>
     <bpmn:intermediateThrowEvent id="EndEvent_1b2osk8" name="Payment to be compensated" camunda:delegateExpression="${event}">
       <bpmn:extensionElements>
@@ -116,34 +116,34 @@
       <bpmn:compensateEventDefinition waitForCompletion="true" />
     </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1vqj5bh" sourceRef="EndEvent_1b2osk8" targetRef="EndEvent_0rjkejj" />
-    <bpmn:endEvent id="EndEvent_0rjkejj" name="Payment &#10;not received" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${event}">
+    <bpmn:endEvent id="EndEvent_0rjkejj" name="Payment &#10;not received" camunda:modelerTemplate="com.plexiti.commons.application.FiredEndCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.PaymentNotReceived" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.FinishPayment" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1vqj5bh</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
     </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_16s3byo" name="Payment &#10;received" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${event}">
+    <bpmn:endEvent id="EndEvent_16s3byo" name="Payment &#10;received" camunda:modelerTemplate="com.plexiti.commons.application.FiredEndCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.PaymentReceived" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.FinishPayment" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0boiu4e</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_10kidia" sourceRef="IntermediateThrowEvent_0h7v72w" targetRef="Task_0vr8mvr" />
-    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0h7v72w" name="Payment &#10;partly covered&#10;by account" camunda:modelerTemplate="com.plexiti.commons.application.RaisedIntermediateEvent" camunda:asyncBefore="true" camunda:delegateExpression="${event}">
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0h7v72w" name="Payment &#10;partly covered&#10;" camunda:modelerTemplate="com.plexiti.commons.application.FiredIntermediateCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.PaymentPartlyCoveredByAccount" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.CoverPayment" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_117993c</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_10kidia</bpmn:outgoing>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
     </bpmn:intermediateThrowEvent>
     <bpmn:receiveTask id="Task_1gui4vf" name="Update credit card details" camunda:modelerTemplate="com.plexiti.commons.application.EventListener" camunda:asyncBefore="true" messageRef="Message_1t4sa6a">
       <bpmn:extensionElements>
@@ -154,30 +154,41 @@
       <bpmn:incoming>SequenceFlow_17vx50e</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1yc74ur</bpmn:outgoing>
     </bpmn:receiveTask>
-    <bpmn:startEvent id="StartEvent_1" name=" Payment to &#10;be retrieved" camunda:modelerTemplate="com.plexiti.commons.application.EventListener" camunda:asyncBefore="true">
+    <bpmn:startEvent id="StartEvent_1" name=" Payment &#10;requested" camunda:modelerTemplate="com.plexiti.commons.application.EventListener" camunda:asyncBefore="true">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.PaymentCreated" />
+          <camunda:property name="event" value="com.plexiti.horizon.model.api.PaymentRequested" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_1q648th</bpmn:outgoing>
       <bpmn:messageEventDefinition messageRef="Message_1vckxtw" />
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0boiu4e" sourceRef="IntermediateThrowEvent_0nbj0bp" targetRef="EndEvent_16s3byo" />
-    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0nbj0bp" name="Payment fully covered by account" camunda:modelerTemplate="com.plexiti.commons.application.RaisedIntermediateEvent" camunda:delegateExpression="${event}">
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0nbj0bp" name="Payment fully covered" camunda:modelerTemplate="com.plexiti.commons.application.FiredIntermediateCommand" camunda:asyncBefore="true" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.PaymentFullyCoveredByAccount" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.CoverPayment" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0djij4m</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0boiu4e</bpmn:outgoing>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0871z8w" sourceRef="IntermediateThrowEvent_0ik8wl7" targetRef="EndEvent_15oscy6" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0ik8wl7" name="Payment fully covered" camunda:modelerTemplate="com.plexiti.commons.application.FiredIntermediateCommand" camunda:delegateExpression="${command}">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.CoverPayment" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0ulp52k</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0871z8w</bpmn:outgoing>
+      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
     </bpmn:intermediateThrowEvent>
     <bpmn:association id="Association_09lrmud" associationDirection="One" sourceRef="BoundaryEvent_1r1o6id" targetRef="Task_1r4av6f" />
   </bpmn:process>
   <bpmn:message id="Message_1t4sa6a" name="com.plexiti.horizon.model.api.CreditCardDetailsUpdated" />
-  <bpmn:message id="Message_1vckxtw" name="com.plexiti.horizon.model.api.PaymentCreated" />
+  <bpmn:message id="Message_1vckxtw" name="com.plexiti.horizon.model.api.PaymentRequested" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Payment">
       <bpmndi:BPMNEdge id="SequenceFlow_1q648th_di" bpmnElement="SequenceFlow_1q648th">
@@ -303,9 +314,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0ulp52k_di" bpmnElement="SequenceFlow_0ulp52k">
         <di:waypoint xsi:type="dc:Point" x="872" y="120" />
-        <di:waypoint xsi:type="dc:Point" x="1137" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="932" y="120" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="960" y="99" width="90" height="12" />
+          <dc:Bounds x="857" y="99" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_10h631f_di" bpmnElement="EndEvent_1oelcbo">
@@ -370,7 +381,7 @@
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0b84dw1_di" bpmnElement="IntermediateThrowEvent_0h7v72w">
         <dc:Bounds x="549" y="148" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="591" y="147" width="70" height="38" />
+          <dc:Bounds x="588" y="147" width="70" height="38" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ReceiveTask_1aazwyp_di" bpmnElement="Task_1gui4vf">
@@ -379,7 +390,7 @@
       <bpmndi:BPMNShape id="StartEvent_10k5zb4_di" bpmnElement="StartEvent_1">
         <dc:Bounds x="108" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="96" y="147" width="59" height="25" />
+          <dc:Bounds x="102" y="147" width="49" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0boiu4e_di" bpmnElement="SequenceFlow_0boiu4e">
@@ -392,7 +403,20 @@
       <bpmndi:BPMNShape id="IntermediateThrowEvent_1krox5h_di" bpmnElement="IntermediateThrowEvent_0nbj0bp">
         <dc:Bounds x="641" y="218" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="626" y="257" width="67" height="38" />
+          <dc:Bounds x="626" y="257" width="67" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0871z8w_di" bpmnElement="SequenceFlow_0871z8w">
+        <di:waypoint xsi:type="dc:Point" x="968" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="1137" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1052.5" y="98.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_02h58np_di" bpmnElement="IntermediateThrowEvent_0ik8wl7">
+        <dc:Bounds x="932" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="916" y="69" width="67" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

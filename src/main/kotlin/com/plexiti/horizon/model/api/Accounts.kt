@@ -16,8 +16,8 @@ data class AmountWithdrawn(@TargetAggregateIdentifier val accountId: AccountId, 
 data class CreditAmount(@TargetAggregateIdentifier val accountId: AccountId, val referenceId: String, val amount: Float)
 data class AmountCredited(@TargetAggregateIdentifier val accountId: AccountId, val referenceId: String, val amount: Float)
 
-data class ChargeCreditCard(val accountId: AccountId, val amount: Float, val expired: Boolean)
-data class CreditCardCharged(val accountId: AccountId, val amount: Float)
+data class ChargeCreditCard(val accountId: AccountId, val referenceId: String, val amount: Float, val expired: Boolean)
+data class CreditCardCharged(val accountId: AccountId, val referenceId: String, val amount: Float)
 
 data class UpdateCreditCardDetails(val accountId: AccountId)
 data class CreditCardDetailsUpdated(val accountId: AccountId)

@@ -165,11 +165,47 @@
         }
     },
     {
-        "name": "Issue command and move on",
-        "id": "com.plexiti.commons.application.Command",
+        "name": "Fire command and move on",
+        "id": "com.plexiti.commons.application.FiredIntermediateCommand",
         "isDefault": false,
         "appliesTo": [
-            "bpmn:SendTask"
+            "bpmn:SendTask",
+            "bpmn:IntermediateThrowEvent"
+        ],
+        "properties": [
+            {
+                "label": "Bean Binding",
+                "type": "Hidden",
+                "value": "${command}",
+                "editable": false,
+                "binding": {
+                    "type": "property",
+                    "name": "camunda:delegateExpression"
+                }
+            },
+            {
+                "label": "Fire command",
+                "description": "Enter full class name or explicit name",
+                "type": "String",
+                "binding": {
+                    "type": "camunda:property",
+                    "name": "command"
+                },
+                "constraints": {
+                    "notEmpty": true
+                }
+            }
+        ],
+        "entriesVisible": {
+            "_all": true
+        }
+    },
+    {
+        "name": "Fire command and finish path",
+        "id": "com.plexiti.commons.application.FiredEndCommand",
+        "isDefault": false,
+        "appliesTo": [
+            "bpmn:EndEvent"
         ],
         "properties": [
             {

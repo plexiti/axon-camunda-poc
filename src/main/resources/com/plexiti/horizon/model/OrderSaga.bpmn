@@ -14,9 +14,9 @@
     <bpmn:serviceTask id="Task_16lnb17" name="Retrieve payment" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndEvent" camunda:asyncBefore="true" camunda:delegateExpression="${act}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="command" value="com.plexiti.horizon.model.api.RetrievePayment" />
           <camunda:property name="success" value="com.plexiti.horizon.model.api.PaymentReceived" />
           <camunda:property name="failure" value="com.plexiti.horizon.model.api.PaymentNotReceived" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.RequestPayment" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1y7lu0c</bpmn:incoming>
@@ -38,23 +38,23 @@
       <bpmn:outgoing>SequenceFlow_0bg999w</bpmn:outgoing>
     </bpmn:manualTask>
     <bpmn:sequenceFlow id="SequenceFlow_0bg999w" sourceRef="ManualTask_09na2ud" targetRef="EndEvent_0zr2b6n" />
-    <bpmn:endEvent id="EndEvent_0yv9t84" name="Order not fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent">
+    <bpmn:endEvent id="EndEvent_0yv9t84" name="Order not fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.FiredEndCommand" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.OrderNotFulfilled" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.FinishOrder" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0tuuf3a</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
     </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_0zr2b6n" name="Order fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.RaisedEndEvent" camunda:delegateExpression="${event}">
+    <bpmn:endEvent id="EndEvent_0zr2b6n" name="Order fulfilled" camunda:modelerTemplate="com.plexiti.commons.application.FiredEndCommand" camunda:delegateExpression="${command}">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="event" value="com.plexiti.horizon.model.api.OrderFulfilled" />
+          <camunda:property name="command" value="com.plexiti.horizon.model.api.FinishOrder" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0bg999w</bpmn:incoming>
-      <bpmn:messageEventDefinition camunda:delegateExpression="${event}" />
+      <bpmn:messageEventDefinition camunda:delegateExpression="${command}" />
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1y7lu0c" sourceRef="Task_1hy5w5l" targetRef="Task_16lnb17" />
     <bpmn:serviceTask id="Task_1hy5w5l" name="Verify &#10;or create account" camunda:modelerTemplate="com.plexiti.commons.application.CommandAndCompletion" camunda:delegateExpression="${act}">

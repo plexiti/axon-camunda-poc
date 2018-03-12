@@ -16,7 +16,7 @@ import java.util.*
 @Aggregate
 class Order(): AggregateIdentifiedBy<OrderId>() {
 
-    private val logger = LoggerFactory.getLogger(Account::class.java)
+    private val logger = LoggerFactory.getLogger(Order::class.java)
 
     @CommandHandler
     constructor(command: PlaceOrder): this() {
@@ -24,9 +24,27 @@ class Order(): AggregateIdentifiedBy<OrderId>() {
         apply(OrderPlaced(OrderId(UUID.randomUUID().toString()), command.customer, command.sum))
     }
 
+    @CommandHandler
+    fun handle(command: FinishOrder) {
+        logger.debug(command.toString())
+        if (command.success) {
+            apply(OrderFulfilled(id))
+        } else {
+            apply(OrderNotFulfilled(id))
+        }
+    }
+
     @EventSourcingHandler
     protected fun on(event: OrderPlaced) {
         this.id = event.orderId
+    }
+
+    @EventSourcingHandler
+    protected fun on(event: OrderFulfilled) {
+    }
+
+    @EventSourcingHandler
+    protected fun on(event: OrderNotFulfilled) {
     }
 
 }

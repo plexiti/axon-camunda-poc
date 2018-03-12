@@ -20,13 +20,14 @@ class PaymentSaga: Flow() {
     private lateinit var paymentId: PaymentId
     private lateinit var accountId: AccountId
     private var paymentAmount: Float = 0F
-    private var creditAvailable = 0F
-    private var amountWithdrawn: Float = 0F
+    private var creditAvailableOnAccount = 0F // just eventually consistent read model info, but useful to show a query example
+    private var amountWithdrawnFromAccount = 0F // actually retrieved money deducted by event happening in write model
+    private var amountChargedByCreditCard = 0F
     private var creditCardExpired = false
 
     @StartSaga
     @SagaEventHandler(associationProperty = "paymentId")
-    fun on(event: PaymentCreated) {
+    fun on(event: PaymentRequested) {
         logger.debug(event.toString())
         paymentId = event.paymentId
         accountId = event.accountId
@@ -39,8 +40,14 @@ class PaymentSaga: Flow() {
     @SagaEventHandler(associationProperty = "referenceId", keyName = "paymentId")
     fun on (event: AmountWithdrawn) {
         logger.debug(event.toString())
-        amountWithdrawn = event.amount
+        amountWithdrawnFromAccount = event.amount
         correlateEventToFlow(event)
+    }
+
+    @SagaEventHandler(associationProperty = "referenceId", keyName = "paymentId")
+    fun on (event: CreditCardCharged) {
+        logger.debug(event.toString())
+        amountChargedByCreditCard = event.amount
     }
 
     @SagaEventHandler(associationProperty = "accountId")
@@ -50,22 +57,34 @@ class PaymentSaga: Flow() {
         correlateEventToFlow(event)
     }
 
+    @SagaEventHandler(associationProperty = "paymentId")
+    fun on(event: PaymentPartlyCovered) {
+        logger.debug(event.toString())
+    }
+
+    @SagaEventHandler(associationProperty = "paymentId")
+    fun on(event: PaymentFullyCovered) {
+        logger.debug(event.toString())
+    }
+
     @EndSaga
     @SagaEventHandler(associationProperty = "paymentId")
     fun on(event: PaymentReceived) {
+        logger.debug(event.toString())
     }
 
     @EndSaga
     @SagaEventHandler(associationProperty = "paymentId")
     fun on(event: PaymentNotReceived) {
+        logger.debug(event.toString())
     }
 
     // TODO alternatives: e.g. mirror all member properties
 
     override fun bindValuesToFlow(): Map<String, Any> {
         return mapOf (
-            "creditAvailable" to (creditAvailable > 0F),
-            "creditFullyCovering" to (amountWithdrawn == paymentAmount)
+            "creditAvailable" to (creditAvailableOnAccount > 0F),
+            "creditFullyCovering" to (amountWithdrawnFromAccount == paymentAmount)
         )
     }
 
@@ -82,12 +101,12 @@ class PaymentSaga: Flow() {
     @FlowResponseHandler
     fun handle(accountSummary: AccountSummary) {
         logger.debug(accountSummary.toString())
-        creditAvailable = accountSummary.balance
+        creditAvailableOnAccount = accountSummary.balance
     }
 
     @FlowCommandFactory
     fun chargeCreditCard(): ChargeCreditCard {
-        val command = ChargeCreditCard(accountId, paymentAmount - amountWithdrawn, creditCardExpired)
+        val command = ChargeCreditCard(accountId, paymentId.id, paymentAmount - amountWithdrawnFromAccount, creditCardExpired)
         logger.debug(command.toString())
         return command
     }
@@ -101,37 +120,23 @@ class PaymentSaga: Flow() {
 
     @FlowCommandFactory
     fun creditAmount(): CreditAmount {
-        val command = CreditAmount(accountId, paymentId.id, amountWithdrawn)
+        val command = CreditAmount(accountId, paymentId.id, amountWithdrawnFromAccount)
         logger.debug(command.toString())
         return command
     }
 
-    @FlowEventFactory
-    fun paymentReceived(): PaymentReceived {
-        val event = PaymentReceived(paymentId, accountId, paymentAmount)
-        logger.debug(event.toString())
-        return event
+    @FlowCommandFactory
+    fun finishPayment(): FinishPayment {
+        val command = FinishPayment(paymentId)
+        logger.debug(command.toString())
+        return command
     }
 
-    @FlowEventFactory
-    fun paymentNotReceived(): PaymentNotReceived {
-        val event = PaymentNotReceived(paymentId, accountId, paymentAmount - amountWithdrawn)
-        logger.debug(event.toString())
-        return event
-    }
-
-    @FlowEventFactory
-    fun paymentFullyCoveredByAccount(): PaymentFullyCoveredByAccount {
-        val event = PaymentFullyCoveredByAccount(paymentId, accountId, amountWithdrawn)
-        logger.debug(event.toString())
-        return event
-    }
-
-    @FlowEventFactory
-    fun paymentPartlyCoveredByAccount(): PaymentPartlyCoveredByAccount {
-        val event = PaymentPartlyCoveredByAccount(paymentId, accountId, amountWithdrawn)
-        logger.debug(event.toString())
-        return event
+    @FlowCommandFactory
+    fun coverPayment(): CoverPayment {
+        val command = CoverPayment(paymentId, if (amountChargedByCreditCard > 0) amountChargedByCreditCard else amountWithdrawnFromAccount)
+        logger.debug(command.toString())
+        return command
     }
 
     @FlowEventFactory

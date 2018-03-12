@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component
 import javax.persistence.EntityManager
 
 @Component
-class Accounts(private val entityManager: EntityManager) {
+class AccountResource(private val entityManager: EntityManager) {
 
-    private val logger = LoggerFactory.getLogger(Accounts::class.java)
+    private val logger = LoggerFactory.getLogger(AccountResource::class.java)
 
     @EventHandler
     fun on(event: AccountCreated) {

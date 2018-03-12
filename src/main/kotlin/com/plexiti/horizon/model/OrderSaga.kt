@@ -17,6 +17,7 @@ class OrderSaga: Flow() {
     private lateinit var orderId: OrderId
     private lateinit var customer: AccountId
     private var orderSum: Float = 0F
+    private var success = false
 
     @StartSaga
     @SagaEventHandler(associationProperty = "orderId")
@@ -29,13 +30,14 @@ class OrderSaga: Flow() {
     }
 
     @SagaEventHandler(associationProperty = "orderId")
-    fun on(event: PaymentCreated) {
+    fun on(event: PaymentRequested) {
         SagaLifecycle.associateWith("paymentId", event.paymentId.id)
     }
 
     @SagaEventHandler(associationProperty = "paymentId")
     fun on(event: PaymentReceived) {
         logger.debug(event .toString())
+        success = true
         correlateEventToFlow(event)
     }
 
@@ -58,27 +60,22 @@ class OrderSaga: Flow() {
     }
 
     @FlowCommandFactory
-    fun retrievePayment(): RetrievePayment {
-        val command = RetrievePayment(customer, orderId, orderSum)
-        logger.debug(command.toString())
-        return command
-    }
-
-    @FlowCommandFactory
     fun verifyOrCreateAccount(): VerifyOrCreateAccount {
         val command = VerifyOrCreateAccount(customer.id)
         logger.debug(command.toString())
         return command
     }
 
-    @FlowEventFactory
-    fun orderFulfilled(): OrderFulfilled {
-        return OrderFulfilled(orderId)
+    @FlowCommandFactory
+    fun retrievePayment(): RequestPayment {
+        val command = RequestPayment(customer, orderId, orderSum)
+        logger.debug(command.toString())
+        return command
     }
 
-    @FlowEventFactory
-    fun orderNotFulfilled(): OrderNotFulfilled {
-        return OrderNotFulfilled(orderId)
+    @FlowCommandFactory
+    fun finishOrder(): FinishOrder {
+        return FinishOrder(orderId, success)
     }
 
 }

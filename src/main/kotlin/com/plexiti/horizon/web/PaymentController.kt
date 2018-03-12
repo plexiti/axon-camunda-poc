@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestMapping
-import com.plexiti.horizon.model.api.RetrievePayment
+import com.plexiti.horizon.model.api.RequestPayment
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -26,9 +26,9 @@ class PaymentController {
     private lateinit var commandGateway: CommandGateway
 
     @RequestMapping(method = arrayOf(RequestMethod.POST)) @ResponseBody
-    fun payments(@RequestParam(value = "account", required = true) account: String, @RequestParam(value = "amount", required = true) amount: Float): ResponseEntity<RetrievePayment> {
-        val command = RetrievePayment(AccountId(account), OrderId(UUID.randomUUID().toString()), amount)
-        commandGateway.send<RetrievePayment>(command)
+    fun payments(@RequestParam(value = "account", required = true) account: String, @RequestParam(value = "amount", required = true) amount: Float): ResponseEntity<RequestPayment> {
+        val command = RequestPayment(AccountId(account), OrderId(UUID.randomUUID().toString()), amount)
+        commandGateway.send<RequestPayment>(command)
         return ResponseEntity(HttpStatus.ACCEPTED)
     }
 
