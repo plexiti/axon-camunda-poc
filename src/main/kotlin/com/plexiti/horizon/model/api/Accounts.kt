@@ -4,6 +4,9 @@ import org.axonframework.commandhandling.TargetAggregateIdentifier
 import javax.persistence.Entity
 import javax.persistence.Id
 
+/**
+ * @author Martin Schimak <martin.schimak@plexiti.com>
+ */
 class AccountId(id: String): Identifier<String>(id)
 
 data class CreateAccount(val name: String)

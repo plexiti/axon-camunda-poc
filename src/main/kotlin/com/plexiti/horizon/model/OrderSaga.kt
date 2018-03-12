@@ -1,7 +1,8 @@
 package com.plexiti.horizon.model
 
 import com.plexiti.horizon.model.api.*
-import com.plexiti.integration.*
+import com.plexiti.integration.Flow
+import com.plexiti.integration.FlowCommandFactory
 import org.axonframework.eventhandling.saga.EndSaga
 import org.axonframework.eventhandling.saga.SagaEventHandler
 import org.axonframework.eventhandling.saga.SagaLifecycle
@@ -9,6 +10,9 @@ import org.axonframework.eventhandling.saga.StartSaga
 import org.axonframework.spring.stereotype.Saga
 import org.slf4j.LoggerFactory
 
+/**
+ * @author Martin Schimak <martin.schimak@plexiti.com>
+ */
 @Saga
 class OrderSaga: Flow() {
 

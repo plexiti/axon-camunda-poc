@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory
 // TODO inheritance: replace abstract class with something better
 // TODO api: consider to get rid of explicit correlation to flow
 
+/**
+ * @author Martin Schimak <martin.schimak@plexiti.com>
+ */
 @Saga
 class PaymentSaga: Flow() {
 

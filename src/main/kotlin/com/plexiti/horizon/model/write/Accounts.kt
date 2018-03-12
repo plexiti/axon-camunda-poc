@@ -6,22 +6,15 @@ import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.commandhandling.model.AggregateNotFoundException
 import org.axonframework.commandhandling.model.Repository
-
 import org.axonframework.eventsourcing.EventSourcingHandler
+import org.axonframework.eventsourcing.EventSourcingRepository
+import org.axonframework.eventsourcing.eventstore.EventStore
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
-import org.axonframework.eventsourcing.CachingEventSourcingRepository
-import org.axonframework.eventsourcing.EventCountSnapshotTriggerDefinition
-import org.axonframework.eventsourcing.EventSourcingRepository
-import org.springframework.context.annotation.Bean
-import org.axonframework.eventsourcing.eventstore.EventStore
-
-
-
 
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>

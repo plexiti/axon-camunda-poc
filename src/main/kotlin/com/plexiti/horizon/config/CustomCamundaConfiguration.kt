@@ -5,8 +5,6 @@ import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin
 import org.camunda.bpm.engine.impl.persistence.StrongUuidGenerator
 import org.camunda.bpm.spring.boot.starter.configuration.Ordering
-import org.camunda.bpm.spring.boot.starter.configuration.impl.AbstractCamundaConfiguration
-import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 

@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import javax.persistence.EntityManager
 
+/**
+ * @author Martin Schimak <martin.schimak@plexiti.com>
+ */
 @Component
 class AccountResource(private val entityManager: EntityManager) {
 

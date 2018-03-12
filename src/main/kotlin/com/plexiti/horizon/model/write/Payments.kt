@@ -1,13 +1,12 @@
 package com.plexiti.horizon.model.write
 
 import com.plexiti.horizon.model.api.*
-import org.axonframework.commandhandling.*
+import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
 import java.util.*
-
 
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>

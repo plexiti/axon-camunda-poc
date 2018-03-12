@@ -9,7 +9,6 @@ import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
 import java.util.*
 
-
 /**
  * @author Martin Schimak <martin.schimak@plexiti.com>
  */
