@@ -22,7 +22,7 @@
       <bpmn:incoming>SequenceFlow_1y7lu0c</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ve5fmw</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:boundaryEvent id="BoundaryEvent_0gu1wth" name="Payment not received" attachedToRef="Task_16lnb17">
+    <bpmn:boundaryEvent id="BoundaryEvent_0gu1wth" name="Payment canceled" attachedToRef="Task_16lnb17">
       <bpmn:outgoing>SequenceFlow_0tuuf3a</bpmn:outgoing>
       <bpmn:errorEventDefinition />
     </bpmn:boundaryEvent>
@@ -93,7 +93,7 @@
       <bpmndi:BPMNShape id="BoundaryEvent_061hp38_di" bpmnElement="BoundaryEvent_0gu1wth">
         <dc:Bounds x="428" y="179" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="464" y="202" width="62" height="25" />
+          <dc:Bounds x="465" y="204" width="45" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0tuuf3a_di" bpmnElement="SequenceFlow_0tuuf3a">
